@@ -8,6 +8,7 @@ PASSWORD = "password"
 DRIRECT_FOLDER_EMAIL = "INBOX"
 
 
+
 ################ IMAP SSL ##############################
 def get_cmd(time_out = None):
 
