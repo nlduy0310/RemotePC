@@ -2,18 +2,16 @@ import imaplib
 import time
 import email
 import config
-
+import os
 GMAIL = "emailcuamayong@gmail.com"
 PASSWORD = "password"
 DRIRECT_FOLDER_EMAIL = "INBOX"
 
 
 ################ IMAP SSL ##############################
-def get_cmd(Time_recur = 5, time_out = None):
+def get_cmd(time_out = None):
 
     app_config = config.Config()
-
-    start = time.time() - Time_recur
 
     while (True):
         with imaplib.IMAP4_SSL(host="imap.gmail.com", port=imaplib.IMAP4_SSL_PORT, timeout = time_out) as imap_ssl:
