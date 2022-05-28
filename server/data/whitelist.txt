@@ -1,2 +1,6 @@
 abc123@gmail.com
 def456@gmail.com
+noreply@kaggle.com
+no-reply@m.mail.coursera.org
+noreply@github.com
+luongthanhhoangphu2002@gmail.com
