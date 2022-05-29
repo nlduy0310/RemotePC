@@ -38,5 +38,5 @@ def execute_one_command(cmd):
     
 if __name__ == '__main__':
     client, cmd = imap.get_cmd()
-    execute_one_command(cmd)
+    # execute_one_command(cmd)
     
