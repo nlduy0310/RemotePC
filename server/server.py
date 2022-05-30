@@ -3,6 +3,8 @@ import imap
 import psutil
 import os
 import time
+import smtp
+from datetime import datetime
 
 # https://thispointer.com/python-get-list-of-all-running-processes-and-sort-by-highest-memory-usage/
 
@@ -29,10 +31,10 @@ def getListOfProcessSortedByMemory():
 def execute_one_command(cmd):
     if(cmd == "shutdown"):
         os.system("shutdown: /s /t 1")
-        return "shutdown completed!" # gửi mess
+        return ["Shutdown completed!", ""] # [subject, text]
     elif (cmd == "restart"):
         os.system("shutdown /r /t 1")
-        return "restart completed!" # gửi mess
+        return ["Restart completed!", ""] # [subject, text]
 
     # list --all | list: list tat ca process
     # list --10: list 10 process su dung nhieu Memory Usage nhat
@@ -44,7 +46,7 @@ def execute_one_command(cmd):
                 listOfRunningProcess = getListOfProcessSortedByMemory()[:int(cmd[7:])]
             else:
                 listOfRunningProcess = ["None"]
-        return listOfRunningProcess # gửi đính kèm 
+        return listOfRunningProcess # gửi đính kèm ,  #sửa theo dạng [subject, text]
     # kill --chrome messenger
     elif ("kill" in cmd):
         list_proc = cmd[7:].split()
@@ -54,11 +56,22 @@ def execute_one_command(cmd):
                if killed_proc.lower() in proc.name().lower():
                    proc.kill()
                    result.append(proc.name()) # gửi mess
-        return result
+        return result   #sửa theo dạng [subject, text]
+    elif (cmd == "screenshot"):
+        filepath = smtp.screenshot()
+        now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
+        return [f"Screenshot at {now}", "", filepath]
+    elif (cmd == "webcamshot"):
+        filepath = smtp.webcamshot()
+        now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
+        return [f"Webcamshot at {now}", "", filepath]
 
-    
+
+
+
 if __name__ == '__main__':
     handler = imap.MailFetcher()
+    sender = smtp.MailSender()
 
     cmd_list = []
     try:
@@ -68,9 +81,10 @@ if __name__ == '__main__':
             if user_mail and cmd:
                 cmd_list.append([user_mail, cmd, False])
                 print('Executing', cmd, 'from', user_mail)
-                result_text = execute_one_command(cmd)
+                result = execute_one_command(cmd)
                 time.sleep(3)
                 print('Sending result to', user_mail)
+                sender.send_attached_email(user_mail, result[0], result[1], result[2] if len(result)==3 else None)
                 # MailSender.send(user_mail, result_text, result_file)
 
     except KeyboardInterrupt:
