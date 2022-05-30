@@ -27,12 +27,29 @@ def getListOfProcessSortedByMemory():
 
 
 def execute_one_command(cmd):
-    if(cmd == "shutdown"):
-        os.system("shutdown: /s /t 1")
+
+    if("shutdown" in cmd):
+        do = "shutdown /s"
+        if("--" in cmd and cmd[11:].isnumeric()):
+            do += " /t " + cmd[11:]
+
+        os.system(do)
         return "shutdown completed!" # gửi mess
-    elif (cmd == "restart"):
-        os.system("shutdown /r /t 1")
+
+    elif ("restart" in cmd):
+        do = "shutdown /r"
+        if("--" in cmd and cmd[10:].isnumeric()):
+            do += " /t " + cmd[10:]
+        os.system(do)
         return "restart completed!" # gửi mess
+
+    # Ngu dong
+    elif ("hibernate" in cmd):
+        do = "shutdown /h"
+        if("--" in cmd and cmd[12:].isnumeric()):
+            do += " /t " + cmd[12:]
+        os.system(do)
+        return "hibernate completed!" # gửi mess
 
     # list --all | list: list tat ca process
     # list --10: list 10 process su dung nhieu Memory Usage nhat
@@ -44,7 +61,10 @@ def execute_one_command(cmd):
                 listOfRunningProcess = getListOfProcessSortedByMemory()[:int(cmd[7:])]
             else:
                 listOfRunningProcess = ["None"]
-        return listOfRunningProcess # gửi đính kèm 
+        for item in listOfRunningProcess:
+            print(item)
+        return listOfRunningProcess # 
+
     # kill --chrome messenger
     elif ("kill" in cmd):
         list_proc = cmd[7:].split()
@@ -54,10 +74,13 @@ def execute_one_command(cmd):
                if killed_proc.lower() in proc.name().lower():
                    proc.kill()
                    result.append(proc.name()) # gửi mess
+        for item in result:
+            print(item)
         return result
 
     
 if __name__ == '__main__':
+
     handler = imap.MailFetcher()
 
     cmd_list = []
@@ -76,4 +99,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Ctrl C pressed')
         print('Whole cmd list:', cmd_list, sep='\n')
-    
