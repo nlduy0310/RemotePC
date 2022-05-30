@@ -6,7 +6,8 @@ import time
 import smtp
 from datetime import datetime
 
-# https://thispointer.com/python-get-list-of-all-running-processes-and-sort-by-highest-memory-usage/
+
+dir_data = "data/"
 
 def getListOfProcessSortedByMemory():
     
@@ -26,9 +27,8 @@ def getListOfProcessSortedByMemory():
     listOfProcObjects = sorted(listOfProcObjects, key=lambda procObj: procObj['vms'], reverse=True)
     return listOfProcObjects
 
-
-
 def execute_one_command(cmd):
+    dir_file = None
     if("shutdown" in cmd):
         do = "shutdown /s"
         if("--" in cmd and cmd[11:].isnumeric()):
@@ -44,29 +44,39 @@ def execute_one_command(cmd):
         os.system(do)
         return ["Restart completed!", ""] # [subject, text]
 
-
     # Ngu dong
     elif ("hibernate" in cmd):
         do = "shutdown /h"
         if("--" in cmd and cmd[12:].isnumeric()):
             do += " /t " + cmd[12:]
         os.system(do)
-        return "hibernate completed!" # gửi mess
+        return ["Hibernate completed!", ""] # [subject, text]
 
     # list --all | list: list tat ca process
     # list --10: list 10 process su dung nhieu Memory Usage nhat
     elif ("list" in cmd):
+        text = ""
         if (cmd == "list" or cmd == "list --all"):
             listOfRunningProcess = getListOfProcessSortedByMemory()
+            text = "List all processes: complete!"
         else:
             if cmd[7:].isnumeric():
                 listOfRunningProcess = getListOfProcessSortedByMemory()[:int(cmd[7:])]
+                text = "List " + cmd[7:] + " processes: complete!"
             else:
                 listOfRunningProcess = ["None"]
-        for item in listOfRunningProcess:
-            print(item)
-        return listOfRunningProcess # gửi đính kèm ,  #sửa theo dạng [subject, text]
+                text = "List cmd error!"
 
+        dir_file = dir_data + cmd + ".txt"
+        f = open(dir_file, "w+")
+        
+        # chuyen list dictionary sang chuoi
+        listOfRunningProcess = [str(x) for x in listOfRunningProcess]
+        listOfRunningProcess = '\n'.join(listOfRunningProcess)
+        f.write(listOfRunningProcess)
+        f.close()
+
+        return [text, "", dir_file] # [subject, text, filepath]
 
     # kill --chrome messenger
     elif ("kill" in cmd):
@@ -76,10 +86,16 @@ def execute_one_command(cmd):
            for proc in psutil.process_iter():
                if killed_proc.lower() in proc.name().lower():
                    proc.kill()
-                   result.append(proc.name()) # gửi mess
+                   if(len(result) == 0 or (len(result) > 0 and result[len(result) - 1] != proc.name())):
+                       result.append(proc.name())
+        dir_file = dir_data + "killed_list.txt"
+        text = "There are " + str(len(result)) + "/" + str(len(list_proc)) + " proccess killed"
+        f = open(dir_file, "w+")
+        f.write(text)
         for item in result:
-            print(item)
-        return result   #sửa theo dạng [subject, text]
+            f.write(item)
+        f.close()
+        return [text, "", dir_file] # [subject, text, filepath]
     elif (cmd == "screenshot"):
         filepath = smtp.screenshot()
         now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
