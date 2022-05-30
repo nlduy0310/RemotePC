@@ -4,8 +4,8 @@ import email
 import config
 import os
 import datetime
-GMAIL = "email@gmail.com"
-PASSWORD = "pw"
+GMAIL = "abc@gmail.com"
+PASSWORD = "123"
 IMAP_HOST = 'imap.gmail.com'
 DIRECT_FOLDER_EMAIL = "INBOX"
 
