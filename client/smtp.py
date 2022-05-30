@@ -9,8 +9,8 @@ import os
 import cv2
 
 
-GMAIL = "vanqui.tu1@gmail.com"
-PASSWORD = "tuvanqui"
+GMAIL = "email@gmail.com"
+PASSWORD = "pw"
 SMTP_HOST = 'smtp.gmail.com'
 
 def screenshot():
