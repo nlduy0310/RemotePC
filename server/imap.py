@@ -5,7 +5,7 @@ import config
 import os
 import datetime
 GMAIL = "email@gmail.com"
-PASSWORD = "password"
+PASSWORD = "pw"
 IMAP_HOST = 'imap.gmail.com'
 DIRECT_FOLDER_EMAIL = "INBOX"
 
@@ -62,30 +62,41 @@ class MailFetcher:
         self.mailbox.login(GMAIL, PASSWORD)
         self.mailbox.select(mailbox=DIRECT_FOLDER_EMAIL, readonly=False)
 
-    @classmethod
     def fetch_newest(self):
+        self.mailbox.noop()
         date = (datetime.date.today() -
                 datetime.timedelta(days=1)).strftime("%d-%b-%Y")
-        resp_code, self.mails = self.mailbox.search(
+        resp_code, mails = self.mailbox.search(
             None, "(UNSEEN)", "SINCE {0}".format(date))
-        self.mail_ids = [id for id in self.mails[0].decode().split()]
+        mail_ids = [id for id in mails[0].decode().split()]
 
-        for id in self.mail_ids[::-1]:
-            print(id)
-            resp_code, mail_bytes = self.mailbox.fetch(id, '(RFC822)')
-            mail_data = email.message_from_bytes(bytes(mail_bytes[0][1]))
-            client_mail = mail_data.get("From")
-            client_mail = client_mail[client_mail.find(
-                '<') + 1: len(client_mail) - 1]
-
+        for id in mail_ids[::-1]:
+            # print(id)
+            resp_code, msg = self.mailbox.fetch(id, '(RFC822)')
             self.mailbox.store(id, '+FLAGS', '(\\SEEN)')
 
-            if (client_mail not in self.app_config.whitelist):
-                print(client_mail, 'not in')
-                continue
+            for response in msg:
+                if isinstance(response, tuple):
+                    # print('selected')
+                    msg = email.message_from_bytes(response[1])
 
-            subject = mail_data.get("Subject")
-            return client_mail, subject
+                    sender, encoding = email.header.decode_header(msg.get("From"))[
+                        0]
+                    if isinstance(sender, bytes):
+                        sender = sender.decode(encoding)
+                    sender = sender[sender.find('<') + 1: len(sender) - 1]
+
+                    if sender not in self.app_config.whitelist:
+                        # print(sender, 'not in whitelist')
+                        continue
+
+                    subject, encoding = email.header.decode_header(msg["Subject"])[
+                        0]
+                    if isinstance(subject, bytes):
+                        subject = subject.decode(encoding)
+
+                    # print(sender, subject, sep='<----->')
+                    return sender, subject
 
         return "", ""
 
