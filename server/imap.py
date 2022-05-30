@@ -4,8 +4,8 @@ import email
 import config
 import os
 import datetime
-GMAIL = "abc@gmail.com"
-PASSWORD = "123"
+GMAIL = "email@gmail.com"
+PASSWORD = "pw"
 IMAP_HOST = 'imap.gmail.com'
 DIRECT_FOLDER_EMAIL = "INBOX"
 
@@ -84,7 +84,7 @@ class MailFetcher:
                         0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(encoding)
-                    sender = sender[sender.find('<') + 1: len(sender) - 1]
+                    #sender = sender[sender.find('<') + 1: len(sender) - 1]
 
                     if sender not in self.app_config.whitelist:
                         # print(sender, 'not in whitelist')
