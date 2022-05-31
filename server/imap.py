@@ -71,23 +71,24 @@ class MailFetcher:
         mail_ids = [id for id in mails[0].decode().split()]
 
         for id in mail_ids[::-1]:
-            # print(id)
+            print(id)
             resp_code, msg = self.mailbox.fetch(id, '(RFC822)')
             self.mailbox.store(id, '+FLAGS', '(\\SEEN)')
 
             for response in msg:
                 if isinstance(response, tuple):
-                    # print('selected')
+                    print('selected')
                     msg = email.message_from_bytes(response[1])
 
                     sender, encoding = email.header.decode_header(msg.get("From"))[
                         0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(encoding)
-                    #sender = sender[sender.find('<') + 1: len(sender) - 1]
+                    if sender.find('<') >= 0:
+                        sender = sender[sender.find('<') + 1: len(sender) - 1]
 
                     if sender not in self.app_config.whitelist:
-                        # print(sender, 'not in whitelist')
+                        print(sender, 'not in whitelist')
                         continue
 
                     subject, encoding = email.header.decode_header(msg["Subject"])[
@@ -95,7 +96,7 @@ class MailFetcher:
                     if isinstance(subject, bytes):
                         subject = subject.decode(encoding)
 
-                    # print(sender, subject, sep='<----->')
+                    print(sender, subject, sep='<----->')
                     return sender, subject
 
         return "", ""
