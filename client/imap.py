@@ -1,3 +1,6 @@
+import threading
+from concurrent.futures import thread
+from ctypes.wintypes import tagRECT
 import imaplib
 import time
 import email
@@ -29,8 +32,10 @@ class MailReceiver:
         self.mailbox.noop()
         date = (datetime.date.today() -
                 datetime.timedelta(days=1)).strftime("%d-%b-%Y")
+        search_criteria = '(FROM \"' + expected_sender + \
+            '\" SUBJECT \"' + expected_subject + '\")'
         resp_code, mails = self.mailbox.search(
-            None, "(UNSEEN)", "SINCE {0}".format(date))
+            None, "(UNSEEN)", "SINCE {0}".format(date), search_criteria)
         mail_ids = [id for id in mails[0].decode().split()]
 
         for id in mail_ids[::-1]:
@@ -48,17 +53,17 @@ class MailReceiver:
                         sender = sender.decode(encoding)
                     if sender.find('<') >= 0:
                         sender = sender[sender.find('<') + 1:-1]
-                    if sender != expected_sender:
-                        print(sender, 'not expected')
-                        continue
+                    # if sender != expected_sender:
+                    #     print(sender, 'not expected')
+                    #     continue
 
                     # get subject
                     subject, encoding = email.header.decode_header(msg["Subject"])[
                         0]
                     if isinstance(subject, bytes):
                         subject = subject.decode(encoding)
-                    if subject != expected_subject:
-                        continue
+                    # if subject != expected_subject:
+                    #     continue
 
                     # print('found requirements:', sender, subject)
                     self.mailbox.store(id, '+FLAGS', '(\\SEEN)')
@@ -74,10 +79,12 @@ class MailReceiver:
                     if msg.is_multipart():
                         for part in msg.walk():
                             content_type = part.get_content_type()
-                            content_disposition = str(part.get("Content-Disposition"))
+                            content_disposition = str(
+                                part.get("Content-Disposition"))
                             if content_type == 'text/plain':
                                 try:
-                                    body += part.get_payload(decode=True).decode()
+                                    body += part.get_payload(
+                                        decode=True).decode()
                                 except:
                                     pass
                     else:
@@ -120,7 +127,7 @@ def await_response(receiver: MailReceiver, expected_sender, expected_subject, ti
                 expected_sender, expected_subject)
             if sender and subject:
                 print('found', sender, subject)
-                print('content:', body) 
+                print('content:', body)
                 if os.path.isfile(path):
                     print('attachment(s) found')
                 print('displaying to GUI')
