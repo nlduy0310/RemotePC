@@ -14,6 +14,8 @@ cmd_list = []
 
 ################ IMAP SSL ##############################
 
+# https://www.thepythoncode.com/article/reading-emails-in-python
+
 
 class MailReceiver:
     def __init__(self) -> None:
@@ -39,41 +41,53 @@ class MailReceiver:
                 if isinstance(response, tuple):
                     # print('selected')
                     msg = email.message_from_bytes(response[1])
-
+                    # get sender
                     sender, encoding = email.header.decode_header(msg.get("From"))[
                         0]
                     if isinstance(sender, bytes):
                         sender = sender.decode(encoding)
                     if sender.find('<') >= 0:
                         sender = sender[sender.find('<') + 1:-1]
-                    print('sender:', sender)
-
                     if sender != expected_sender:
                         print(sender, 'not expected')
                         continue
 
+                    # get subject
                     subject, encoding = email.header.decode_header(msg["Subject"])[
                         0]
                     if isinstance(subject, bytes):
                         subject = subject.decode(encoding)
-                    print('subject: ', subject)
                     if subject != expected_subject:
-                        print(subject, 'not expected')
                         continue
 
-                    print('found requirements:', sender, subject)
+                    # print('found requirements:', sender, subject)
                     self.mailbox.store(id, '+FLAGS', '(\\SEEN)')
-                    # print('marked as seen')
-                    print('found')
 
+                    # get attachment
                     if isinstance(msg, str) == False:
                         path = self.save_attachment(msg)
                     else:
                         path = None
-                    # print(sender, subject, sep='<----->')
-                    return sender, subject, path
 
-        return "", "", None
+                    # get body
+                    body = ""
+                    if msg.is_multipart():
+                        for part in msg.walk():
+                            content_type = part.get_content_type()
+                            content_disposition = str(part.get("Content-Disposition"))
+                            if content_type == 'text/plain':
+                                try:
+                                    body += part.get_payload(decode=True).decode()
+                                except:
+                                    pass
+                    else:
+                        content_type = msg.get_content_type()
+                        body += msg.get_payload(decode=True).decode()
+
+                    # print(sender, subject, sep='<----->')
+                    return sender, subject, body, path
+
+        return "", "", None, None
 
     def save_attachment(self, msg, download_folder="./data"):
         """
@@ -102,10 +116,11 @@ def await_response(receiver: MailReceiver, expected_sender, expected_subject, ti
     try:
         timeout = time.time() + time_s
         while time.time() <= timeout:
-            sender, subject, path = receiver.search_for(
+            sender, subject, body, path = receiver.search_for(
                 expected_sender, expected_subject)
             if sender and subject:
                 print('found', sender, subject)
+                print('content:', body) 
                 if os.path.isfile(path):
                     print('attachment(s) found')
                 print('displaying to GUI')

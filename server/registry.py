@@ -59,7 +59,7 @@ def edit_registry(base_key_str, sub_key_str, name_str, value_str):
         base_key = get_base_key(base_key_str)
         if base_key is None:
             return 'Invalid base key: ' + base_key_str
-        key = winreg.OpenKeyEx(base_key, sub_key_str)
+        key = winreg.OpenKeyEx(base_key, sub_key_str, 0, winreg.KEY_ALL_ACCESS)
         if not key:
             return 'Invalid sub key: ' + sub_key_str
 
@@ -75,3 +75,7 @@ def edit_registry(base_key_str, sub_key_str, name_str, value_str):
     except Exception as e:
         print(e)
         return str(e)
+
+
+if __name__ == '__main__':
+    pass

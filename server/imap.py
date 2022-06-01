@@ -77,7 +77,6 @@ class MailFetcher:
 
             for response in msg:
                 if isinstance(response, tuple):
-                    print('selected')
                     msg = email.message_from_bytes(response[1])
 
                     sender, encoding = email.header.decode_header(msg.get("From"))[
@@ -88,7 +87,6 @@ class MailFetcher:
                         sender = sender[sender.find('<') + 1: len(sender) - 1]
 
                     if sender not in self.app_config.whitelist:
-                        print(sender, 'not in whitelist')
                         continue
 
                     subject, encoding = email.header.decode_header(msg["Subject"])[
@@ -111,20 +109,4 @@ if __name__ == '__main__':
     # client, command = get_cmd()
     # print("client: " + client + ", command: " + command)
     # print(time.time() - start)
-
-    handler = MailFetcher()
-    MailFetcher.print()
-    try:
-        while True:
-            print('Idling...\t Press Ctrl + C to escape')
-            user_mail, cmd = handler.fetch_newest()
-            if user_mail and cmd:
-                cmd_list.append([user_mail, cmd, False])
-                print('Executing', cmd, 'from', user_mail)
-                # result_text, result_file = execute_command(cmd)
-                print('Sending result to', user_mail)
-                # MailSender.send(user_mail, result_text, result_file)
-
-    except KeyboardInterrupt:
-        print('Ctrl C pressed')
-        print('Whole cmd list:', cmd_list, sep='\n')
+    pass

