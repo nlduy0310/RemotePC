@@ -117,9 +117,10 @@ class MailReceiver:
         print('Hello')
 
 
-def await_response(receiver: MailReceiver, expected_sender, expected_subject, time_s=30):
+def await_response(expected_sender, expected_subject, time_s=30):
     print('waiting for response from', expected_sender,
           'on', expected_subject, 'for', time_s, 'seconds')
+    receiver = MailReceiver()
     try:
         timeout = time.time() + time_s
         while time.time() <= timeout:
