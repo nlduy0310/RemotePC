@@ -178,8 +178,10 @@ def is_admin():
 
 if __name__ == '__main__':
 
-    handler = imap.MailFetcher()
-    sender = smtp.MailSender()
+    gmail = ''
+    password = ''
+    handler = imap.MailFetcher(gmail, password)
+    sender = smtp.MailSender(gmail, password)
 
     try:
         while True:

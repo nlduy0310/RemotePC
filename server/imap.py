@@ -4,8 +4,9 @@ import email
 import config
 import os
 import datetime
-GMAIL = "email@gmail.com"
-PASSWORD = "pw"
+
+# GMAIL = "email@gmail.com"
+# PASSWORD = "pw"
 IMAP_HOST = 'imap.gmail.com'
 DIRECT_FOLDER_EMAIL = "INBOX"
 
@@ -15,51 +16,15 @@ cmd_list = []
 ################ IMAP SSL ##############################
 
 
-def get_cmd(time_out=None):
-
-    app_config = config.Config()
-
-    while (True):
-        with imaplib.IMAP4_SSL(host=IMAP_HOST, port=imaplib.IMAP4_SSL_PORT, timeout=time_out) as imap_ssl:
-            print("Connection Object : {}".format(imap_ssl))
-
-            ############### Login to Mailbox ######################
-            #print("Logging into mailbox...")
-            resp_code, response = imap_ssl.login(
-                GMAIL, PASSWORD)
-
-            ############### Set Mailbox #############
-            resp_code, mail_count = imap_ssl.select(
-                mailbox=DIRECT_FOLDER_EMAIL, readonly=True)
-
-            resp_code, mails = imap_ssl.search(None, "ALL")
-            cnt_mails = len(mails[0].decode().split())
-            if (cnt_mails > 0):
-                # Lấy từ thư mới nhất
-                for i in range(cnt_mails - 1, -1, -1):
-                    mail_id = mails[0].decode().split()[i]
-                    resp_code, mail_data = imap_ssl.fetch(mail_id, '(RFC822)')
-
-                    content = email.message_from_bytes(mail_data[0][1])
-                    client_mail = content.get("From")
-                    client_mail = client_mail[client_mail.find(
-                        '<') + 1: len(client_mail) - 1]
-                    # Kiểm tra có trong danh sách không
-                    if (client_mail not in app_config.whitelist):
-                        continue
-                    subject = content.get("Subject")
-                    return client_mail, subject
-
-            imap_ssl.close()
-
-
 class MailFetcher:
-    def __init__(self) -> None:
+    def __init__(self, gmail, password) -> None:
         self.app_config = config.Config()
         self.mailbox = imaplib.IMAP4_SSL(
             host=IMAP_HOST, port=imaplib.IMAP4_SSL_PORT, timeout=None)
         print("Connection Object : {}".format(self.mailbox))
-        self.mailbox.login(GMAIL, PASSWORD)
+        self.gmail = gmail
+        self.password = password
+        self.mailbox.login(self.gmail , self.password)
         self.mailbox.select(mailbox=DIRECT_FOLDER_EMAIL, readonly=False)
 
     def fetch_newest(self):

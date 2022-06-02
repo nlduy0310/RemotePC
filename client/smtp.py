@@ -10,8 +10,8 @@ import os
 import cv2
 
 
-GMAIL = "email@gmail.com"
-PASSWORD = "pw"
+# GMAIL = "email@gmail.com"
+# PASSWORD = "pw"
 SMTP_HOST = 'smtp.gmail.com'
 
 
@@ -41,22 +41,24 @@ def webcamshot():
 
 
 class MailSender:
-    def __init__(self) -> None:
+    def __init__(self, gmail, password) -> None:
         self.server = smtplib.SMTP_SSL(
             host=SMTP_HOST, port=smtplib.SMTP_SSL_PORT, timeout=None)
-        self.server.login(GMAIL, PASSWORD)
+        self.gmail = gmail
+        self.password = password
+        self.server.login(self.gmail, self.password)
 
     def send_plaintext_email(self, receiver, sbj, msg):
         message = f"""\
         Subject: {sbj}
 
         {msg}"""
-        self.server.sendmail(from_addr=GMAIL, to_addrs=receiver, msg=message)
+        self.server.sendmail(from_addr=self.gmail, to_addrs=receiver, msg=message)
 
     def send_attached_email(self, receiver, sbj, msg, file_path=None):
         # Create a multipart message and set headers
         message = MIMEMultipart()
-        message["From"] = GMAIL
+        message["From"] = self.gmail
         message["To"] = receiver
         message["Subject"] = sbj
 
@@ -86,5 +88,5 @@ class MailSender:
         text = message.as_string()
 
         # Send email
-        self.server.sendmail(from_addr=GMAIL, to_addrs=receiver, msg=text)
+        self.server.sendmail(from_addr=self.gmail, to_addrs=receiver, msg=text)
         print('mail sent')

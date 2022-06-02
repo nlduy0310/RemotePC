@@ -7,8 +7,8 @@ import email
 import os
 import datetime
 
-GMAIL = "email@gmail.com"
-PASSWORD = "pw"
+# GMAIL = "email@gmail.com"
+# PASSWORD = "pw"
 IMAP_HOST = 'imap.gmail.com'
 DIRECT_FOLDER_EMAIL = "INBOX"
 
@@ -21,11 +21,13 @@ cmd_list = []
 
 
 class MailReceiver:
-    def __init__(self) -> None:
+    def __init__(self, gmail, password) -> None:
         self.mailbox = imaplib.IMAP4_SSL(
             host=IMAP_HOST, port=imaplib.IMAP4_SSL_PORT, timeout=None)
         print("Connection Object : {}".format(self.mailbox))
-        self.mailbox.login(GMAIL, PASSWORD)
+        self.gmail = gmail
+        self.password = password
+        self.mailbox.login(self.gmail , self.password)
         self.mailbox.select(mailbox=DIRECT_FOLDER_EMAIL, readonly=False)
 
     def search_for(self, expected_sender, expected_subject):
@@ -117,10 +119,10 @@ class MailReceiver:
         print('Hello')
 
 
-def await_response(expected_sender, expected_subject, time_s=30):
+def await_response(gmail, password, expected_sender, expected_subject, time_s=30):
     print('waiting for response from', expected_sender,
           'on', expected_subject, 'for', time_s, 'seconds')
-    receiver = MailReceiver()
+    receiver = MailReceiver(gmail, password)
     try:
         timeout = time.time() + time_s
         while time.time() <= timeout:
