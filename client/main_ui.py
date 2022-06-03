@@ -307,6 +307,7 @@ class Main(QMainWindow, Ui):
         self.menu.setCurrentIndex(2)
 
     def saveServerList(self):
+        self.cbb.clear()
         for r in range(15):
             if (not isinstance(self.server_list_table.item(r,0),type(None)) and not isinstance(self.server_list_table.item(r,1),type(None))):
                 self.serverList[self.server_list_table.item(r,0).text()] = self.server_list_table.item(r,1).text()
