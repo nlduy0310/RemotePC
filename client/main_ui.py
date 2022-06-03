@@ -1,12 +1,13 @@
 from cProfile import label
 from email import message
+from email.charset import QP
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, 
                              QLabel, QPushButton, QWidget,
-                             QLineEdit, QMessageBox, 
+                             QLineEdit, QMessageBox, QComboBox,
                              QStackedLayout, QListWidget,
                              QVBoxLayout, QHBoxLayout,
-                             QStackedWidget,
+                             QStackedWidget, QTextEdit,
                              QGridLayout)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt
@@ -23,8 +24,8 @@ class Ui(QWidget):
         Main.setObjectName("Main")
         Main.setFixedSize(900, 500)
 
-        self.width = 900
-        self.height = 500
+        self.width = 1000
+        self.height = 600
 
         self.setFixedSize(self.width, self.height)
 
@@ -43,23 +44,24 @@ class Ui(QWidget):
     def signin_Ui(self):
         self.signin_wid.setFixedSize(600, 400)
         self.setAutoFillBackground(True)
-        # p = self.signin_wid.palette()
-        # p.setColor(self.signin_wid.backgroundRole(), Qt.)
-        # stylesheet = """
-        #         background-image: url("ui/background/login_bg.png")
-        #         """
-        # self.signin_wid.setStyleSheet(stylesheet)
         self.signin_wid.setWindowTitle("Login window")
         self.signin_wid.setWindowIcon(QtGui.QIcon(dir_to_icon + "icon_gmail.png"))
         self.signin_wid.setStyleSheet("color: black;"
-                        "background-color: lavender;"
+                        "background-color: white;"
                         "selection-color: black;"
-                        "selection-background-color: white;")
+                        "selection-background-color: blue;")
         self.welcome = QLabel(self.signin_wid)
-        self.welcome.setGeometry(QRect(30, 120, 480, 200))
+        #self.welcome.setGeometry(QRect(30, 120, 480, 200))
         self.welcome.setStyleSheet("font: 20pt Century Gothic")
         self.welcome.setAlignment(Qt.AlignCenter|Qt.AlignTop)
         self.welcome.setText("Welcome to the Control PC!")
+
+        self.welcome_icon = QLabel()
+        pixmap = QtGui.QPixmap(dir_to_icon + 'control.jpg')
+        self.welcome_icon.setPixmap(pixmap)
+        self.welcome_icon.setMask(pixmap.mask())
+        self.welcome_icon.setAlignment(Qt.AlignCenter|Qt.AlignTop)
+
 
         self.signin_user = QLineEdit(self)
         self.signin_user.setFixedSize(300, 30)
@@ -112,6 +114,7 @@ QPushButton:hover {
         self.layout_sigin_2.addWidget(self.buttonLogin)
 
         self.main_signin_layout = QVBoxLayout()
+        self.main_signin_layout.addWidget(self.welcome_icon)
         self.main_signin_layout.addWidget(self.welcome)
         self.main_signin_layout.addLayout(self.layout_user)
         self.main_signin_layout.addLayout(self.layout_sigin_2)
@@ -119,20 +122,83 @@ QPushButton:hover {
         self.signin_wid.setLayout(self.main_signin_layout)
 
     def main_Ui(self):
-        self.setWindowTitle("This is main window...")
+        self.main_wid.setWindowTitle("Main window")
+        self.main_wid.setWindowIcon(QtGui.QIcon(dir_to_icon + "client"))
         self.main_wid.setFixedSize(self.width, self.height)
-        self.label_main = QLabel(self.main_wid)
-        self.label_main.setGeometry(QRect(30, 120, 480, 200))
-        self.label_main.setStyleSheet("font: 14pt Century Gothic")
-        self.label_main.setAlignment(Qt.AlignLeading|Qt.AlignLeft|Qt.AlignTop)
-        self.label_main.setText("This is main")
-        self.button_back = QPushButton("Go Back")
 
-        self.test_layout = QHBoxLayout()
-        self.test_layout.addWidget(self.label_main)
-        self.test_layout.addWidget(self.button_back)
+        self.btn_1 = QPushButton("List processes")
+        self.btn_2 = QPushButton("Kill processes") 
+        self.btn_3 = QPushButton("Shutdown/Restart/Hibernate")
 
-        self.main_wid.setLayout(self.test_layout)
+        self.btn_4 = QPushButton("Keylog")
+        self.btn_5 = QPushButton("Edit resgistry")
+        self.btn_6 = QPushButton("Screenshot")
+        self.btn_7 = QPushButton("Webcam")
+        self.btn_8 = QPushButton("Retrieve a file")
+        self.cbb = QComboBox()
+        self.btn_1.setFixedSize(200, 30)
+        self.btn_2.setFixedSize(200, 30)
+        self.btn_3.setFixedSize(200, 30)
+        self.btn_3.setFont(QtGui.QFont('Times', 6))
+        self.btn_4.setFixedSize(200, 30)
+        self.btn_5.setFixedSize(200, 30)
+        self.btn_6.setFixedSize(200, 30)
+        self.btn_7.setFixedSize(200, 30)
+        self.btn_8.setFixedSize(200, 30)
+        self.cbb.setFixedSize(200, 30)
+
+        self.btn_1.setIcon(QtGui.QIcon(dir_to_icon + "list.png"))
+        self.btn_2.setIcon(QtGui.QIcon(dir_to_icon + "kill.png"))
+        self.btn_3.setIcon(QtGui.QIcon(dir_to_icon + "power.png"))
+        self.btn_4.setIcon(QtGui.QIcon(dir_to_icon + "keylog.png"))
+        self.btn_5.setIcon(QtGui.QIcon(dir_to_icon + "registry.png"))
+        self.btn_6.setIcon(QtGui.QIcon(dir_to_icon + "screenshot.png"))
+        self.btn_7.setIcon(QtGui.QIcon(dir_to_icon + "webcam.png"))
+        self.btn_8.setIcon(QtGui.QIcon(dir_to_icon + "file.png"))
+        
+        # Items on left layout
+        self.btn_back = QPushButton("Back to Sign-in")
+        self.btn_back.setFixedSize(150, 40)
+        self.btn_back.setIcon(QtGui.QIcon(dir_to_icon + "return.png"))
+
+        # Items on center Layout
+        self.main_result = QTextEdit()
+        self.main_result.setReadOnly(True)
+        document = self.main_result.document()
+        cursor = QtGui.QTextCursor(document)
+        #p = cursor.position()
+
+        # text
+        text = ''.join(open('data/text.txt').readlines())
+        cursor.insertText(text)
+        # image
+        cursor.insertImage('data/desktop.jpg')
+
+        self.main_left_layout = QVBoxLayout()
+        self.main_left_layout.addStretch()
+        self.main_left_layout.addWidget(self.btn_back)
+
+        # Center laout
+        self.main_center_layout = QVBoxLayout()
+        self.main_center_layout.addWidget(self.main_result)
+        # Right layout
+        self.layout_cmd = QVBoxLayout()
+        self.layout_cmd.addWidget(self.btn_1)
+        self.layout_cmd.addWidget(self.btn_2)
+        self.layout_cmd.addWidget(self.btn_3)
+        self.layout_cmd.addWidget(self.btn_4)
+        self.layout_cmd.addWidget(self.btn_5)
+        self.layout_cmd.addWidget(self.btn_6)
+        self.layout_cmd.addWidget(self.btn_7)
+        self.layout_cmd.addWidget(self.btn_8)
+        self.layout_cmd.addWidget(self.cbb)
+
+        self.main_layout = QHBoxLayout()
+        self.main_layout.addLayout(self.main_left_layout)
+        self.main_layout.addLayout(self.main_center_layout)
+        self.main_layout.addLayout(self.layout_cmd)
+
+        self.main_wid.setLayout(self.main_layout)
 
 class Main(QMainWindow, Ui):
 
@@ -141,7 +207,7 @@ class Main(QMainWindow, Ui):
         self.setupUi(self)
 
         self.buttonLogin.clicked.connect(self.signin_event)
-        self.button_back.clicked.connect(self.setSigninWindow)
+        self.btn_back.clicked.connect(self.setSigninWindow)
 
     def signin_event(self):
         # self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
@@ -161,7 +227,9 @@ class Main(QMainWindow, Ui):
         msg.setWindowTitle("Cannot sign-in")
         #msg.setDetailedText("The details are as follows:")
         msg.exec_()
+
     def setSigninWindow(self):
+        self.signin_pass.setText("")
         self.menu.setCurrentIndex(0)
     def setMainWindow(self):
         self.menu.setCurrentIndex(1)
