@@ -98,7 +98,7 @@ class MailReceiver:
 
         return "", "", None, None
 
-    def save_attachment(self, msg, download_folder="./data"):
+    def save_attachment(self, msg, download_folder="data"):
         """
         Given a message, save its attachments to the specified
         download folder (default is /tmp)
