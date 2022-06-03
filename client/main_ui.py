@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QStackedLayout, QListWidget,
                              QVBoxLayout, QHBoxLayout,
                              QStackedWidget, QTextEdit,
-                             QGridLayout)
+                             QGridLayout, QGroupBox)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt
 import client
@@ -22,7 +22,7 @@ class Ui(QWidget):
     def setupUi(self, Main):
 
         Main.setObjectName("Main")
-        Main.setFixedSize(900, 500)
+        Main.setFixedSize(1000, 600)
 
         self.width = 1000
         self.height = 600
@@ -34,12 +34,15 @@ class Ui(QWidget):
 
         self.signin_wid = QWidget()
         self.main_wid = QWidget()
+        self.server_list_wid = QWidget()
 
         self.signin_Ui()
         self.main_Ui()
+        self.server_list_Ui()
 
         self.menu.addWidget(self.signin_wid)
         self.menu.addWidget(self.main_wid)
+        self.menu.addWidget(self.server_list_wid)
 
     def signin_Ui(self):
         self.signin_wid.setFixedSize(600, 400)
@@ -129,23 +132,30 @@ QPushButton:hover {
         self.btn_1 = QPushButton("List processes")
         self.btn_2 = QPushButton("Kill processes") 
         self.btn_3 = QPushButton("Shutdown/Restart/Hibernate")
-
         self.btn_4 = QPushButton("Keylog")
         self.btn_5 = QPushButton("Edit resgistry")
         self.btn_6 = QPushButton("Screenshot")
         self.btn_7 = QPushButton("Webcam")
         self.btn_8 = QPushButton("Retrieve a file")
-        self.cbb = QComboBox()
-        self.btn_1.setFixedSize(200, 30)
-        self.btn_2.setFixedSize(200, 30)
-        self.btn_3.setFixedSize(200, 30)
-        self.btn_3.setFont(QtGui.QFont('Times', 6))
-        self.btn_4.setFixedSize(200, 30)
-        self.btn_5.setFixedSize(200, 30)
-        self.btn_6.setFixedSize(200, 30)
-        self.btn_7.setFixedSize(200, 30)
-        self.btn_8.setFixedSize(200, 30)
-        self.cbb.setFixedSize(200, 30)
+        
+        self.btn_1.setStyleSheet("text-align:left;")
+        self.btn_2.setStyleSheet("text-align:left;")
+        self.btn_3.setStyleSheet("text-align:left;")
+        self.btn_4.setStyleSheet("text-align:left;")
+        self.btn_5.setStyleSheet("text-align:left;")
+        self.btn_6.setStyleSheet("text-align:left;")
+        self.btn_7.setStyleSheet("text-align:left;")
+        self.btn_8.setStyleSheet("text-align:left;")
+
+        self.btn_1.setFixedSize(190, 30)
+        self.btn_2.setFixedSize(190, 30)
+        self.btn_3.setFixedSize(190, 30)
+        self.btn_3.setFont(QtGui.QFont('Times', 5))
+        self.btn_4.setFixedSize(190, 30)
+        self.btn_5.setFixedSize(190, 30)
+        self.btn_6.setFixedSize(190, 30)
+        self.btn_7.setFixedSize(190, 30)
+        self.btn_8.setFixedSize(190, 30)
 
         self.btn_1.setIcon(QtGui.QIcon(dir_to_icon + "list.png"))
         self.btn_2.setIcon(QtGui.QIcon(dir_to_icon + "kill.png"))
@@ -157,6 +167,12 @@ QPushButton:hover {
         self.btn_8.setIcon(QtGui.QIcon(dir_to_icon + "file.png"))
         
         # Items on left layout
+        self.btn_server_ls = QPushButton("List servers")
+        self.btn_server_ls.setFixedSize(150, 40)
+        self.btn_server_ls.setIcon(QtGui.QIcon(dir_to_icon + "servers.png"))
+        self.main_left_label_cbb = QLabel("Choose a server:")
+        self.cbb = QComboBox()
+        self.cbb.setFixedSize(150, 30)
         self.btn_back = QPushButton("Back to Sign-in")
         self.btn_back.setFixedSize(150, 40)
         self.btn_back.setIcon(QtGui.QIcon(dir_to_icon + "return.png"))
@@ -175,12 +191,19 @@ QPushButton:hover {
         cursor.insertImage('data/desktop.jpg')
 
         self.main_left_layout = QVBoxLayout()
+        self.main_left_layout.addWidget(self.main_left_label_cbb)
+        self.main_left_layout.addWidget(self.cbb)
         self.main_left_layout.addStretch()
+        self.main_left_layout.addWidget(self.btn_server_ls)
         self.main_left_layout.addWidget(self.btn_back)
 
         # Center laout
         self.main_center_layout = QVBoxLayout()
+        self.main_center_gb = QGroupBox("Result: ")
+        self.main_center_gb.setStyleSheet("font-weight: bold")
         self.main_center_layout.addWidget(self.main_result)
+        self.main_center_gb.setLayout(self.main_center_layout)
+
         # Right layout
         self.layout_cmd = QVBoxLayout()
         self.layout_cmd.addWidget(self.btn_1)
@@ -191,14 +214,23 @@ QPushButton:hover {
         self.layout_cmd.addWidget(self.btn_6)
         self.layout_cmd.addWidget(self.btn_7)
         self.layout_cmd.addWidget(self.btn_8)
-        self.layout_cmd.addWidget(self.cbb)
+
+        self.main_right_gb = QGroupBox("Some functions: ")
+        self.main_right_gb.setStyleSheet("font-weight: bold")
+        self.main_right_gb.setLayout(self.layout_cmd)
 
         self.main_layout = QHBoxLayout()
         self.main_layout.addLayout(self.main_left_layout)
-        self.main_layout.addLayout(self.main_center_layout)
-        self.main_layout.addLayout(self.layout_cmd)
+        self.main_layout.addWidget(self.main_center_gb)
+        self.main_layout.addWidget(self.main_right_gb)
 
         self.main_wid.setLayout(self.main_layout)
+
+    def server_list_Ui(self):
+        self.server_list_wid.setWindowTitle("Server list")
+        self.server_list_wid.setWindowIcon(QtGui.QIcon(dir_to_icon + "serverlist.png"))
+        self.server_list_wid.setFixedSize(self.width, self.height)
+
 
 class Main(QMainWindow, Ui):
 
@@ -208,6 +240,7 @@ class Main(QMainWindow, Ui):
 
         self.buttonLogin.clicked.connect(self.signin_event)
         self.btn_back.clicked.connect(self.setSigninWindow)
+        self.btn_server_ls.clicked.connect(self.setListServer)
 
     def signin_event(self):
         # self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
@@ -233,7 +266,8 @@ class Main(QMainWindow, Ui):
         self.menu.setCurrentIndex(0)
     def setMainWindow(self):
         self.menu.setCurrentIndex(1)
-
+    def setListServer(self):
+        self.menu.setCurrentIndex(2)
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     M = Main()
