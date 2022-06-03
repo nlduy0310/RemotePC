@@ -8,7 +8,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QStackedLayout, QListWidget,
                              QVBoxLayout, QHBoxLayout,
                              QStackedWidget, QTextEdit,
-                             QGridLayout, QGroupBox)
+                             QGridLayout, QGroupBox, QTableWidget)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt
 import client
@@ -227,9 +227,42 @@ QPushButton:hover {
         self.main_wid.setLayout(self.main_layout)
 
     def server_list_Ui(self):
+        self.serverList = dict()
         self.server_list_wid.setWindowTitle("Server list")
         self.server_list_wid.setWindowIcon(QtGui.QIcon(dir_to_icon + "serverlist.png"))
         self.server_list_wid.setFixedSize(self.width, self.height)
+        
+        self.server_list_layout = QVBoxLayout()
+        self.server_list_label = QLabel("<b>List of accessed remote PC<b>")
+        self.server_list_label.setAlignment(Qt.AlignCenter)
+        self.server_list_layout.addWidget(self.server_list_label)        
+        self.server_list_hlayout = QHBoxLayout()
+        self.server_list_layout.addLayout(self.server_list_hlayout)
+
+        self.server_list_table = QTableWidget()
+        self.server_list_table.setColumnCount(2)
+        self.server_list_table.setRowCount(15)
+        self.server_list_table.setHorizontalHeaderLabels(["Server Name", "Email"])
+        self.server_list_table.setColumnWidth(0, 300)
+        self.server_list_table.setColumnWidth(1, 500)        
+        for r in range(15):
+            for c in range(2):
+                self.server_list_table.setItem(r , c, None)
+        self.server_list_hlayout.addWidget(self.server_list_table)
+
+        self.server_list_vlayout = QVBoxLayout()
+        self.server_list_btn_save = QPushButton()
+        self.server_list_btn_save.setText("Save")
+        self.server_list_btn_close = QPushButton()
+        self.server_list_btn_close.setText("Close")
+        self.server_list_vlayout.addWidget(self.server_list_btn_save)
+        self.server_list_vlayout.addWidget(self.server_list_btn_close)
+        self.server_list_vlayout.addStretch(0)
+        self.server_list_hlayout.addLayout(self.server_list_vlayout)
+
+        self.server_list_wid.setLayout(self.server_list_layout)
+    
+    
 
 
 class Main(QMainWindow, Ui):
@@ -241,12 +274,14 @@ class Main(QMainWindow, Ui):
         self.buttonLogin.clicked.connect(self.signin_event)
         self.btn_back.clicked.connect(self.setSigninWindow)
         self.btn_server_ls.clicked.connect(self.setListServer)
+        self.server_list_btn_save.clicked.connect(self.saveServerList)
+        self.server_list_btn_close.clicked.connect(self.setMainWindow)
 
     def signin_event(self):
         # self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
         # self.setMainWindow()
         try:
-            print(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
+            #print(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
             self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
             self.setMainWindow()
         except Exception:
@@ -264,10 +299,21 @@ class Main(QMainWindow, Ui):
     def setSigninWindow(self):
         self.signin_pass.setText("")
         self.menu.setCurrentIndex(0)
+
     def setMainWindow(self):
         self.menu.setCurrentIndex(1)
+
     def setListServer(self):
         self.menu.setCurrentIndex(2)
+
+    def saveServerList(self):
+        for r in range(15):
+            if (not isinstance(self.server_list_table.item(r,0),type(None)) and not isinstance(self.server_list_table.item(r,1),type(None))):
+                self.serverList[self.server_list_table.item(r,0).text()] = self.server_list_table.item(r,1).text()
+        for x in range(len(self.serverList)):
+            self.cbb.insertItem(x, str(list(self.serverList)[x]))
+        print(self.serverList)
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     M = Main()
