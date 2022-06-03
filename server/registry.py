@@ -7,14 +7,12 @@ STR_TO_BYTES_ENCODING = 'utf-8'
 
 def parse_regedit_cmd(cmd: str):
     paths = cmd[cmd.find('|') + 1:]
-    if len(paths.split('<>')) != 3:
-        print('1')
+    if len(paths.split('|')) != 3:
         return None, None, None, None, None
-    subkey, name, value = paths.split('<>')
+    subkey, name, value = paths.split('|')
 
     cmd_id_base = cmd[:cmd.find('|')]
     if len(cmd_id_base.split(' ')) != 3:
-        print('2')
         return None, None, None, None, None
     cmd, id, basekey = cmd_id_base.split(' ')
 

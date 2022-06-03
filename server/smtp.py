@@ -53,7 +53,8 @@ class MailSender:
         Subject: {sbj}
 
         {msg}"""
-        self.server.sendmail(from_addr=self.gmail, to_addrs=receiver, msg=message)
+        self.server.sendmail(from_addr=self.gmail,
+                             to_addrs=receiver, msg=message)
 
     def send_attached_email(self, receiver, sbj, msg, file_path=None):
         # Create a multipart message and set headers
@@ -65,7 +66,7 @@ class MailSender:
         # Add body to email
         message.attach(MIMEText(msg, "plain"))
 
-        if not isinstance(file_path, type(None)):
+        if (not isinstance(file_path, type(None))) and os.path.isfile(file_path):
             # Open PDF file in binary mode
             with open(file_path, "rb") as attachment:
                 # Add file as application/octet-stream
