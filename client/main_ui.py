@@ -3,16 +3,19 @@ from email import message
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, 
                              QLabel, QPushButton, QWidget,
-                             QLineEdit, QMessageBox,
+                             QLineEdit, QMessageBox, 
                              QStackedLayout, QListWidget,
                              QVBoxLayout, QHBoxLayout,
                              QStackedWidget,
                              QGridLayout)
+from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt
 import client
 import imap
 import smtp
 
+dir_to_icon = "ui/icon/"
+dir_to_bg = "ui/background/"
 class Ui(QWidget):
 
     def setupUi(self, Main):
@@ -39,11 +42,19 @@ class Ui(QWidget):
 
     def signin_Ui(self):
         self.signin_wid.setFixedSize(600, 400)
-        self.setWindowTitle("Login window...")
+        self.setAutoFillBackground(True)
+        # p = self.signin_wid.palette()
+        # p.setColor(self.signin_wid.backgroundRole(), Qt.)
         # stylesheet = """
-        #         background-image: url("login_bg.png")
+        #         background-image: url("ui/background/login_bg.png")
         #         """
         # self.signin_wid.setStyleSheet(stylesheet)
+        self.signin_wid.setWindowTitle("Login window")
+        self.signin_wid.setWindowIcon(QtGui.QIcon(dir_to_icon + "icon_gmail.png"))
+        self.signin_wid.setStyleSheet("color: black;"
+                        "background-color: lavender;"
+                        "selection-color: black;"
+                        "selection-background-color: white;")
         self.welcome = QLabel(self.signin_wid)
         self.welcome.setGeometry(QRect(30, 120, 480, 200))
         self.welcome.setStyleSheet("font: 20pt Century Gothic")
@@ -55,17 +66,38 @@ class Ui(QWidget):
         #self.signin_user.setAlignment(Qt.AlignCenter)
         self.signin_pass = QLineEdit(self)
         self.signin_pass.setFixedSize(300, 30)
+        self.signin_pass.setEchoMode(QLineEdit.Password)
+        self.signin_pass.setStyleSheet('lineedit-password-character: 9679')
         #self.signin_pass.setAlignment(Qt.AlignCenter)
         self.signin_user_label = QLabel("E-Mail: ")
+        self.signin_user_label.setStyleSheet("font-weight: bold")
         self.signin_user_label.setFixedSize(100, 30)
         self.signin_user_label.setAlignment(Qt.AlignLeft)
         self.signin_pass_label = QLabel("Password: ")
+        self.signin_pass_label.setStyleSheet("font-weight: bold")
         self.signin_pass_label.setFixedSize(100,30)       
         self.signin_pass_label.setAlignment(Qt.AlignLeft) 
 
-        self.buttonLogin = QPushButton('Login', self)
+        self.buttonLogin = QPushButton('Login')
+        self.buttonLogin.setStyleSheet('''
+QPushButton {
+    background-color: #2B5DD1;
+    color: #FFFFFF;
+    border-style: outset;
+    padding: 2px;
+    font: bold 20px;
+    border-width: 6px;
+    border-radius: 10px;
+    border-color: #2752B8;
+}
+QPushButton:hover {
+    background-color: lightgreen;
+}
+        ''')
+
         #self.buttonLogin.clicked.connect(self.handleLogin)  
         self.label_gmail = QLabel("@gmail.com")
+        self.label_gmail.setStyleSheet("font-weight: bold")
         self.label_gmail.setFixedSize(150,30)
         self.label_gmail.setAlignment(Qt.AlignLeft)
 
@@ -107,6 +139,7 @@ class Main(QMainWindow, Ui):
     def __init__(self):
         super(Main, self).__init__()
         self.setupUi(self)
+
         self.buttonLogin.clicked.connect(self.signin_event)
         self.button_back.clicked.connect(self.setSigninWindow)
 
