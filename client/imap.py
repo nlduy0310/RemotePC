@@ -24,7 +24,7 @@ class MailReceiver:
     def __init__(self, gmail, password) -> None:
         self.mailbox = imaplib.IMAP4_SSL(
             host=IMAP_HOST, port=imaplib.IMAP4_SSL_PORT, timeout=None)
-        print("Connection Object : {}".format(self.mailbox))
+        # print("Connection Object : {}".format(self.mailbox))
         self.gmail = gmail
         self.password = password
         self.mailbox.login(self.gmail , self.password)

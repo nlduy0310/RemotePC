@@ -89,4 +89,4 @@ class MailSender:
 
         # Send email
         self.server.sendmail(from_addr=self.gmail, to_addrs=receiver, msg=text)
-        print('mail sent')
+        # print('mail sent')

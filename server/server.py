@@ -91,6 +91,12 @@ def execute_one_command(cmd):
             listOfRunningProcess = []
             text = 'Invalid command'
 
+        content = ""
+        if len(listOfRunningProcess) > 0:
+            content += '\nPID --- NAME --- USERNAME --- VMS'
+            for proc in listOfRunningProcess:
+                content += '\n' + ' --- '.join([str(proc['pid']), str(proc['name']), str(proc['username']), str(proc['vms'])])
+
         dir_file = dir_data + cmd + ".txt"
         f = open(dir_file, "w+")
 
@@ -100,7 +106,7 @@ def execute_one_command(cmd):
         f.write(listOfRunningProcess)
         f.close()
 
-        return [cmd, text, dir_file]  # [subject, text, filepath]
+        return [cmd, text + content, dir_file]  # [subject, text, filepath]
 
     # kill 12345 --chrome messenger
     elif ("kill" in cmd):
@@ -151,6 +157,7 @@ def execute_one_command(cmd):
     # cmd = 'regedit 12345 HKEY_CURRENT_USER|Software\\SampleKey<>binvalue<>12'
     elif cmd.startswith('regedit'):
         id, basekey, subkey, name, value = reg.parse_regedit_cmd(cmd)
+        # print(id, basekey, subkey, name, value)
         if id is None:
             return [cmd, 'Invalid regedit command']
 

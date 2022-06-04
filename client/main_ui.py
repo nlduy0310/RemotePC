@@ -1,3 +1,4 @@
+from ast import expr_context
 from email.mime import base
 import random
 import os
@@ -13,6 +14,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QGridLayout, QGroupBox, QTableWidget)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
+from matplotlib.widgets import Widget
 import client
 import imap
 import smtp
@@ -183,6 +185,9 @@ QPushButton:hover {
         self.btn_back = QPushButton("Back to Sign-in")
         self.btn_back.setFixedSize(150, 40)
         self.btn_back.setIcon(QtGui.QIcon(dir_to_icon + "return.png"))
+        self.clear_log_btn = QPushButton("Clear outputs")
+        self.clear_log_btn.setFixedSize(150, 40)
+        self.clear_log_btn.setIcon(QtGui.QIcon(dir_to_icon + "clear-icon.png"))
 
         # Items on center Layout
         self.main_result = QTextEdit()
@@ -203,6 +208,7 @@ QPushButton:hover {
         self.main_left_layout.addWidget(self.main_left_label_cbb)
         self.main_left_layout.addWidget(self.cbb)
         self.main_left_layout.addStretch()
+        self.main_left_layout.addWidget(self.clear_log_btn)
         self.main_left_layout.addWidget(self.btn_server_ls)
         self.main_left_layout.addWidget(self.btn_back)
 
@@ -282,6 +288,7 @@ class Main(QMainWindow, Ui):
         self.threadlist = []
 
         self.buttonLogin.clicked.connect(self.signin_event)
+        self.clear_log_btn.clicked.connect(self.main_result.clear)
         self.btn_back.clicked.connect(self.setSigninWindow)
         self.btn_server_ls.clicked.connect(self.setListServer)
         self.server_list_btn_save.clicked.connect(self.saveServerList)
@@ -437,7 +444,7 @@ class Main(QMainWindow, Ui):
             cursor = QtGui.QTextCursor(self.main_result.document())
             image = QtGui.QImage(path)
             image.scaled(self.main_result.width(),
-                         self.main_result.height(), Qt.KeepAspectRatio)
+                         self.main_result.height(), Qt.AspectRatioMode(0))
             cursor.insertImage(image)
 
     def log_response(self, sender, subject, content, path):
@@ -455,30 +462,6 @@ class Main(QMainWindow, Ui):
             self.log_text(
                 '-----' * 10 + 'REQUEST: {} timed out, no response received'.format(subject))
         self.log_text('-----' * 10)
-
-    def await_response(self, gmail, password, expected_sender, expected_subject, time_s=30):
-        receiver = imap.MailReceiver(gmail, password)
-        try:
-            timeout = time.time() + time_s
-            while time.time() <= timeout:
-                sender, subject, body, path = receiver.search_for(
-                    expected_sender, expected_subject)
-                if sender and subject:
-                    self.log_text('RESPONSE: {} | FROM: {}'.format(
-                        expected_subject, expected_sender))
-                    if body:
-                        self.log_text('CONTENT:\n {}'.format(body))
-                    if path and os.path.isfile(path):
-                        if path.endswith('.jpg') or path.endswith('.png'):
-                            self.log_text('IMAGE ATTACHED: {}'.format(path))
-                            self.log_image(path)
-                        else:
-                            self.log_text('FILE ATTACHED: {}'.format(path))
-                    return
-            self.log_text(
-                'REQUEST: {expected_subject} timed out, no response received')
-        except Exception as e:
-            print(e)
 
 
 class ShutdownReqDialog(QtWidgets.QDialog):
@@ -522,7 +505,7 @@ class RegeditReqDialog(QtWidgets.QDialog):
         # Create layout and add widgets
         layout = QtWidgets.QFormLayout()
         layout.addRow('Select basekey', self.basekey)
-        layout.addRow('Subkey path', self.subkey)
+        layout.addRow('Subkey path (use \\\\)', self.subkey)
         layout.addRow('Value name', self.name)
         layout.addRow('Value to edit', self.value)
         layout.addWidget(self.button_box)
@@ -574,4 +557,9 @@ class AwaitThread(QThread):
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     M = Main()
-    sys.exit(app.exec())
+    try:
+        app.exec_()
+        utils.remove_files('data')
+    except:
+        pass
+
