@@ -93,14 +93,19 @@ def execute_one_command(cmd):
 
         #dir_file = dir_data + cmd + ".txt"
         #f = open(dir_file, "w+")
+        content = ""
+        if listOfRunningProcess:
+            content += '\nPID --- NAME --- USERNAME --- VMS'
+            for proc in listOfRunningProcess:
+                content += '\n' + ' --- '.join([str(proc['pif']), str(proc['name']), str(proc['username']), str(proc['vms'])])
 
         # chuyen list dictionary sang chuoi
-        listOfRunningProcess = [str(x) for x in listOfRunningProcess]
-        listOfRunningProcess = '\n'.join(listOfRunningProcess)
+        # listOfRunningProcess = [str(x) for x in listOfRunningProcess]
+        # listOfRunningProcess = '\n'.join(listOfRunningProcess)
         #f.write(listOfRunningProcess)
         #f.close()
 
-        return [cmd, text + '\n' + listOfRunningProcess, '']  # [subject, text, filepath]
+        return [cmd, text + content]  # [subject, text, filepath]
 
     # kill 12345 --chrome messenger
     elif cmd.startswith("kill"):
