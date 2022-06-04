@@ -177,8 +177,8 @@ def is_admin():
 
 if __name__ == '__main__':
 
-    gmail = 'thukhoacntt@gmail.com'
-    password = '21122002'
+    gmail = '@gmail.com'
+    password = ''
     handler = imap.MailFetcher(gmail, password)
     sender = smtp.MailSender(gmail, password)
 
