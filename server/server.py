@@ -97,7 +97,7 @@ def execute_one_command(cmd):
         if listOfRunningProcess:
             content += '\nPID --- NAME --- USERNAME --- VMS'
             for proc in listOfRunningProcess:
-                content += '\n' + ' --- '.join([str(proc['pif']), str(proc['name']), str(proc['username']), str(proc['vms'])])
+                content += '\n' + ' --- '.join([str(proc['pid']), str(proc['name']), str(proc['username']), str(proc['vms'])])
 
         # chuyen list dictionary sang chuoi
         # listOfRunningProcess = [str(x) for x in listOfRunningProcess]
