@@ -40,7 +40,7 @@ def execute_one_command(cmd):
     dir_file = None
     # cmd = 'shutdown 12345'
     # cmd = 'shutdown 12345 --10'
-    if("shutdown" in cmd):
+    if cmd.startswith("shutdown"):
         do = "shutdown /s"
         if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
             do += " /t " + cmd[cmd.find('--') + 2:]
@@ -51,7 +51,7 @@ def execute_one_command(cmd):
 
     # cmd = 'restart --10'
     # cmd = 'restart 12345 --10'
-    elif ("restart" in cmd):
+    elif cmd.startswith("restart"):
         do = "shutdown /r"
         if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
             do += " /t " + cmd[cmd.find('--') + 2:]
@@ -63,7 +63,7 @@ def execute_one_command(cmd):
     # Ngu dong
     # cmd = 'hibernate 12345'
     # cmd = 'hibernate 12345 --10'
-    elif ("hibernate" in cmd):
+    elif cmd.startswith("hibernate"):
         do = "shutdown /h"
         if("--" in cmd and cmd[cmd.find('--') + 2:].isnumeric()):
             do += " /t " + cmd[cmd.find('--') + 2:]
@@ -74,7 +74,7 @@ def execute_one_command(cmd):
 
     # list 12345: list tat ca process
     # list 12345 --10: list 10 process su dung nhieu Memory Usage nhat
-    elif ("list" in cmd):
+    elif cmd.startswith("list"):
         text = ""
         if not '--' in cmd:
             listOfRunningProcess = getListOfProcessSortedByMemory()
@@ -91,19 +91,19 @@ def execute_one_command(cmd):
             listOfRunningProcess = []
             text = 'Invalid command'
 
-        dir_file = dir_data + cmd + ".txt"
-        f = open(dir_file, "w+")
+        #dir_file = dir_data + cmd + ".txt"
+        #f = open(dir_file, "w+")
 
         # chuyen list dictionary sang chuoi
         listOfRunningProcess = [str(x) for x in listOfRunningProcess]
         listOfRunningProcess = '\n'.join(listOfRunningProcess)
-        f.write(listOfRunningProcess)
-        f.close()
+        #f.write(listOfRunningProcess)
+        #f.close()
 
-        return [cmd, text, dir_file]  # [subject, text, filepath]
+        return [cmd, text + '\n' + listOfRunningProcess, '']  # [subject, text, filepath]
 
     # kill 12345 --chrome messenger
-    elif ("kill" in cmd):
+    elif cmd.startswith("kill"):
         if len(cmd) < 14:
             return [cmd, "Invalid command"]
 
@@ -140,7 +140,7 @@ def execute_one_command(cmd):
 
     # filecopy 12345 file_path
     elif cmd.startswith('filecopy'):
-        filepath = cmd.split(' ')[-1]
+        filepath = (' ').join(cmd.split(' ')[2:])
         return [cmd, f"File copy at {filepath}", filepath]
 
     # cmd = 'keylog 12345'
@@ -177,8 +177,8 @@ def is_admin():
 
 if __name__ == '__main__':
 
-    gmail = '@gmail.com'
-    password = ''
+    gmail = 'thukhoacntt@gmail.com'
+    password = '21122002'
     handler = imap.MailFetcher(gmail, password)
     sender = smtp.MailSender(gmail, password)
 

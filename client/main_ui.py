@@ -423,6 +423,7 @@ class Main(QMainWindow, Ui):
         path, status = QtWidgets.QInputDialog.getText(
             self, 'File retrieve options', 'Path to the file you want to retrieve')
         if status and path:
+            #path.replace('\\', '/')
             cmd = 'filecopy ' + str(random.randint(10000, 99999)) + ' ' + path
             self.handle_request(cmd)
 
@@ -444,10 +445,10 @@ class Main(QMainWindow, Ui):
         if sender and subject:
             if path and os.path.isfile(path):
                 if path.endswith('.jpg') or path.endswith('.png'):
-                    self.log_text('IMAGE ATTACHED: {}'.format(path))
+                    self.log_text('IMAGE ATTACHED: {}\n'.format(path))
                     self.log_image(path)
                 else:
-                    self.log_text('FILE ATTACHED: {}'.format(path))
+                    self.log_text('FILE ATTACHED: {}\n'.format(path))
             if content:
                 self.log_text('CONTENT:\n {}'.format(content))
             self.log_text('RESPONSE: {} | FROM: {}'.format(subject, sender))
