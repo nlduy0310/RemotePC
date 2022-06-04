@@ -430,7 +430,7 @@ class Main(QMainWindow, Ui):
         path, status = QtWidgets.QInputDialog.getText(
             self, 'File retrieve options', 'Path to the file you want to retrieve')
         if status and path:
-            #path.replace('\\', '/')
+            path = path.replace('\\', '/')
             cmd = 'filecopy ' + str(random.randint(10000, 99999)) + ' ' + path
             self.handle_request(cmd)
 
