@@ -228,5 +228,4 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print('Ctrl C pressed')
-        utils.remove_files('data', '.jpg')
-        utils.remove_files('data', '.txt')
+        utils.remove_files('data')
