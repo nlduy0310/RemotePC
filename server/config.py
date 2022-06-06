@@ -1,9 +1,11 @@
-whitelist_path = 'data/whitelist.txt'
+import os
+
+whitelist_path = 'data\\whitelist.txt'
 
 def get_lines(file_path):
     res = []
 
-    with open(file_path, 'r') as f:
+    with open(file_path, 'r', encoding="utf-8") as f:
         res = f.read().splitlines()
 
     return res

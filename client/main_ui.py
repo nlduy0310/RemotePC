@@ -9,9 +9,10 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QLabel, QPushButton, QWidget,
                              QLineEdit, QMessageBox, QComboBox,
                              QStackedLayout, QListWidget,
-                             QVBoxLayout, QHBoxLayout,
+                             QVBoxLayout, QHBoxLayout, QTabWidget,
                              QStackedWidget, QTextEdit,
-                             QGridLayout, QGroupBox, QTableWidget)
+                             QGridLayout, QGroupBox, QTableWidget,
+                             QTableWidgetItem)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 from matplotlib.widgets import Widget
@@ -21,6 +22,10 @@ import smtp
 import utils
 import threading
 import time
+from datetime import datetime, timedelta
+import json
+import cv2
+import numpy as np
 
 dir_to_icon = "ui/icon/"
 dir_to_bg = "ui/background/"
@@ -147,6 +152,9 @@ QPushButton:hover {
         self.btn_7 = QPushButton("Webcam")
         self.btn_8 = QPushButton("Retrieve a file")
 
+        self.btn_9 = QPushButton("Get history")
+        self.btn_10 = QPushButton("Video cam")
+
         self.btn_1.setStyleSheet("text-align:left;")
         self.btn_2.setStyleSheet("text-align:left;")
         self.btn_3.setStyleSheet("text-align:left;")
@@ -155,6 +163,8 @@ QPushButton:hover {
         self.btn_6.setStyleSheet("text-align:left;")
         self.btn_7.setStyleSheet("text-align:left;")
         self.btn_8.setStyleSheet("text-align:left;")
+        self.btn_9.setStyleSheet("text-align:left;")
+        self.btn_10.setStyleSheet("text-align:left;")
 
         self.btn_1.setFixedSize(190, 30)
         self.btn_2.setFixedSize(190, 30)
@@ -165,6 +175,8 @@ QPushButton:hover {
         self.btn_6.setFixedSize(190, 30)
         self.btn_7.setFixedSize(190, 30)
         self.btn_8.setFixedSize(190, 30)
+        self.btn_9.setFixedSize(190, 30)
+        self.btn_10.setFixedSize(190, 30)
 
         self.btn_1.setIcon(QtGui.QIcon(dir_to_icon + "list.png"))
         self.btn_2.setIcon(QtGui.QIcon(dir_to_icon + "kill.png"))
@@ -174,6 +186,8 @@ QPushButton:hover {
         self.btn_6.setIcon(QtGui.QIcon(dir_to_icon + "screenshot.png"))
         self.btn_7.setIcon(QtGui.QIcon(dir_to_icon + "webcam.png"))
         self.btn_8.setIcon(QtGui.QIcon(dir_to_icon + "file.png"))
+        self.btn_9.setIcon(QtGui.QIcon(dir_to_icon + "history.png"))
+        self.btn_10.setIcon(QtGui.QIcon(dir_to_icon + "video-camera.png"))
 
         # Items on left layout
         self.btn_server_ls = QPushButton("List servers")
@@ -212,14 +226,21 @@ QPushButton:hover {
         self.main_left_layout.addWidget(self.btn_server_ls)
         self.main_left_layout.addWidget(self.btn_back)
 
-        # Center laout
+        # Center layout
         self.main_center_layout = QVBoxLayout()
         self.main_center_gb = QGroupBox("Result: ")
         self.main_center_gb.setStyleSheet("font-weight: bold")
         self.main_center_layout.addWidget(self.main_result)
         self.main_center_gb.setLayout(self.main_center_layout)
 
-        # Right layout
+        # Right 
+        self.tab = QTabWidget()
+        self.tab_1 = QWidget()
+        self.tab_2 = QWidget()
+        self.right_layout = QVBoxLayout()
+
+        self.tab.addTab(self.tab_1, "Basic")
+        self.tab.addTab(self.tab_2, "Extra")
         self.layout_cmd = QVBoxLayout()
         self.layout_cmd.addWidget(self.btn_1)
         self.layout_cmd.addWidget(self.btn_2)
@@ -229,11 +250,21 @@ QPushButton:hover {
         self.layout_cmd.addWidget(self.btn_6)
         self.layout_cmd.addWidget(self.btn_7)
         self.layout_cmd.addWidget(self.btn_8)
+        self.tab_1.setLayout(self.layout_cmd)
 
+        self.layout_extra = QVBoxLayout()
+        self.layout_extra.addWidget(self.btn_9)
+        self.layout_extra.addWidget(self.btn_10)
+        self.layout_extra.addStretch()
+        self.tab_2.setLayout(self.layout_extra)
+        self.tab.setFixedWidth(220)
+
+        self.right_layout.addWidget(self.tab)
         self.main_right_gb = QGroupBox("Some functions: ")
         self.main_right_gb.setStyleSheet("font-weight: bold")
-        self.main_right_gb.setLayout(self.layout_cmd)
-
+        self.main_right_gb.setLayout(self.right_layout)
+        self.main_right_gb.setFixedSize(250, 600)
+        
         self.main_layout = QHBoxLayout()
         self.main_layout.addLayout(self.main_left_layout)
         self.main_layout.addWidget(self.main_center_gb)
@@ -265,8 +296,8 @@ QPushButton:hover {
         for r in range(15):
             for c in range(2):
                 self.server_list_table.setItem(r, c, None)
-        self.server_list_hlayout.addWidget(self.server_list_table)
 
+        self.server_list_hlayout.addWidget(self.server_list_table)
         self.server_list_vlayout = QVBoxLayout()
         self.server_list_btn_save = QPushButton()
         self.server_list_btn_save.setText("Save")
@@ -276,7 +307,7 @@ QPushButton:hover {
         self.server_list_vlayout.addWidget(self.server_list_btn_close)
         self.server_list_vlayout.addStretch(0)
         self.server_list_hlayout.addLayout(self.server_list_vlayout)
-
+        
         self.server_list_wid.setLayout(self.server_list_layout)
 
 
@@ -303,7 +334,8 @@ class Main(QMainWindow, Ui):
         self.btn_6.clicked.connect(self.handle_screenshot_request)
         self.btn_7.clicked.connect(self.handle_webcam_request)
         self.btn_8.clicked.connect(self.handle_file_request)
-
+        self.btn_9.clicked.connect(self.handle_history)
+        self.btn_10.clicked.connect(self.handle_video_camera)
     def signin_event(self):
         # self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
         # self.setMainWindow()
@@ -398,7 +430,7 @@ class Main(QMainWindow, Ui):
         dialog = ShutdownReqDialog()
         dialog.exec_()
         mode, time_out = dialog.get_value()
-        if time_out and time_out.isnumeric() and int(time_out) >= 5:
+        if time_out and time_out.isnumeric() and int(time_out) >= 0:
             cmd = mode + ' ' + \
                 str(random.randint(10000, 99999)) + ' --' + time_out
         else:
@@ -425,7 +457,6 @@ class Main(QMainWindow, Ui):
     def handle_webcam_request(self):
         cmd = 'webcamshot ' + str(random.randint(10000, 99999))
         self.handle_request(cmd)
-
     def handle_file_request(self):
         path, status = QtWidgets.QInputDialog.getText(
             self, 'File retrieve options', 'Path to the file you want to retrieve')
@@ -433,6 +464,23 @@ class Main(QMainWindow, Ui):
             path = path.replace('\\', '/')
             cmd = 'filecopy ' + str(random.randint(10000, 99999)) + ' ' + path
             self.handle_request(cmd)
+
+    def handle_history(self):
+        dialog = HistoryReqDialog()
+        dialog.exec_()
+        brow, date = dialog.get_value()
+        cmd = 'his ' +  str(random.randint(10000, 99999)) + \
+            ' ' + brow + ' ' +  date
+        self.handle_request(cmd)
+
+    def handle_video_camera(self):
+        dialog = VideoCamReqDiaLog()
+        dialog.exec_()
+        dur, fps = dialog.get_value()
+        cmd = 'vid-cam ' + str(random.randint(10000, 99999)) + \
+            ' --' + dur + ' --'  + fps
+        print(cmd)
+        self.handle_request(cmd)
 
     def log_text(self, text: str):
         cursor = QtGui.QTextCursor(self.main_result.document())
@@ -454,6 +502,28 @@ class Main(QMainWindow, Ui):
                 if path.endswith('.jpg') or path.endswith('.png'):
                     self.log_text('IMAGE ATTACHED: {}\n'.format(path))
                     self.log_image(path)
+                elif path.endswith('.his'):
+                    self.log_text('HISTORY ATTACHED: {}\n'.format(path))
+                    with open(path, "r") as f:
+                        text = f.readlines()
+                    text = '\n'.join(text[:min(15, len(text))])
+                    self.log_text(text + "\n ...")
+                elif path.endswith('.avi'):
+                    cap = cv2.VideoCapture(path)
+                    if(cap.isOpened() == False):
+                        self.log_text('Can\'t open {} file',format(path))
+                    else:
+                        self.log_text('Video camera: {}\n'.format(path))
+                        while cap.isOpened():
+                            ret, frame = cap.read()
+                            if ret == True:
+                                cv2.imshow('Frame',frame)
+                                if cv2.waitKey(25) & 0xFF == ord('q'):
+                                    break
+                            else:
+                                break
+                        cap.release()
+                        #cv2.destroyAllWindows()
                 else:
                     self.log_text('FILE ATTACHED: {}\n'.format(path))
             if content:
@@ -464,6 +534,66 @@ class Main(QMainWindow, Ui):
                 '-----' * 10 + 'REQUEST: {} timed out, no response received'.format(subject))
         self.log_text('-----' * 10)
 
+class HistoryReqDialog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super(HistoryReqDialog, self).__init__(parent)
+        self.brow = QtWidgets.QComboBox()
+        self.brow.addItems(["Chrome", "Vivaldi", "Edge", "Firefox", "Opera"])
+        self.date = QtWidgets.QLineEdit()
+        self.date.setText(datetime.today().strftime("%Y/%m/%d"))
+        self.button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
+        layout = QtWidgets.QFormLayout()
+        layout.addRow("Browser: ", self.brow)
+        layout.addRow("Enter the date: ", self.date)
+        layout.addWidget(self.button_box)
+        self.setLayout(layout)
+
+        self.setWindowTitle("Browser History")
+        self.setWindowIcon(QtGui.QIcon(dir_to_icon + "history.png"))
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+    def get_value(self):
+        return self.brow.currentText(), self.date.text()
+
+class VideoCamReqDiaLog(QtWidgets.QDialog):
+    def __init__(self, parent=None):
+        super(VideoCamReqDiaLog, self).__init__(parent)
+        self.duration =  QLineEdit()
+        self.duration.setValidator(QtGui.QIntValidator(bottom=1))
+        self.duration.setFixedWidth(300)
+        self.duration.setText("5")
+        self.fps = QLineEdit()
+        self.fps.setValidator(QtGui.QIntValidator(bottom=12))
+        self.fps.setText("24")
+        self.fps.setFixedWidth(300)
+        self.label = QLabel("Enter the duration and fps:")
+        self.label1 = QLabel("Duration: ")
+        self.label2 = QLabel("FPS:")
+        self.button_box = QtWidgets.QDialogButtonBox(
+            QtWidgets.QDialogButtonBox.StandardButton.Ok)
+
+        layout = QtWidgets.QVBoxLayout()
+        
+        layout.addWidget(self.label)
+        layout1 = QHBoxLayout()
+        layout1.addWidget(self.label1)
+        layout1.addWidget(self.duration)
+        layout2 =QHBoxLayout()
+        layout2.addWidget(self.label2)
+        layout2.addWidget(self.fps)
+        layout.addLayout(layout1)
+        layout.addLayout(layout2)
+        layout.addWidget(self.button_box)
+        self.setLayout(layout)
+        self.setWindowTitle("Video camera")
+        self.setWindowIcon(QtGui.QIcon(dir_to_icon + "video-camera.png"))
+
+        self.button_box.accepted.connect(self.accept)
+        self.button_box.rejected.connect(self.reject)
+    def get_value(self):
+        return self.duration.text(), self.fps.text()
 
 class ShutdownReqDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -472,7 +602,7 @@ class ShutdownReqDialog(QtWidgets.QDialog):
         self.mode = QtWidgets.QComboBox()
         self.mode.addItems(["shutdown", "restart", "hibernate"])
         self.timeout = QtWidgets.QLineEdit()
-        self.timeout.setValidator(QtGui.QIntValidator(bottom=5))
+        self.timeout.setValidator(QtGui.QIntValidator(bottom=0))
         self.button_box = QtWidgets.QDialogButtonBox(
             QtWidgets.QDialogButtonBox.StandardButton.Ok)
 
@@ -524,7 +654,7 @@ class AwaitThread(QThread):
     timed_out = pyqtSignal(str)
     error = pyqtSignal(str, str)
 
-    def __init__(self, gmail, password, expected_sender, expected_subject, time_s=30):
+    def __init__(self, gmail, password, expected_sender, expected_subject, time_s=45):
         self.gmail = gmail
         self.password = password
         self.expected_sender = expected_sender

@@ -8,7 +8,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import os
 import cv2
-
+import time
 
 # GMAIL = "email@gmail.com"
 # PASSWORD = "pw"
@@ -38,6 +38,32 @@ def webcamshot():
             datetime.now().strftime("_%Y%m%d_%H%M%S"))
         cv2.imwrite(filepath, img)
         return filepath
+def webcamrecord(length = 5, fps = 24):
+
+    cap = cv2.VideoCapture(0)
+    # Check if camera opened successfully
+    if (cap.isOpened() == False): 
+        return False, None
+    # Set resolutions of frame.
+    # convert from float to integer.
+    frame_width = int(cap.get(3))
+    frame_height = int(cap.get(4))
+
+
+    video_cod = cv2.VideoWriter_fourcc(*'XVID')
+    filepath = ".\data\webcamrecord{}.avi".format(datetime.now().strftime("_%Y%m%d_%H%M%S"))
+    video_output= cv2.VideoWriter(filepath,
+                      video_cod,
+                      fps,
+                      (frame_width,frame_height))
+    st = time.time()
+    while(True):
+        ret, frame = cap.read()
+        if ret == True: 
+            video_output.write(frame)
+        if (time.time() - st >= length):
+              break
+    return True, filepath
 
 
 class MailSender:
