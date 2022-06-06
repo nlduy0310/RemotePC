@@ -430,7 +430,7 @@ class Main(QMainWindow, Ui):
         dialog = ShutdownReqDialog()
         dialog.exec_()
         mode, time_out = dialog.get_value()
-        if time_out and time_out.isnumeric() and int(time_out) >= 0:
+        if time_out and time_out.isnumeric() and int(time_out) >= 5:
             cmd = mode + ' ' + \
                 str(random.randint(10000, 99999)) + ' --' + time_out
         else:
