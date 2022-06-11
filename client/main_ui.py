@@ -11,8 +11,6 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QTableWidgetItem)
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
-from matplotlib.widgets import Widget
-from numpy import interp
 import imap
 import smtp
 import utils

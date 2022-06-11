@@ -1,6 +1,3 @@
-import threading
-from concurrent.futures import thread
-from ctypes.wintypes import tagRECT
 import imaplib
 import time
 import email

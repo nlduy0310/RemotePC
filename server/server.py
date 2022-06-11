@@ -1,5 +1,3 @@
-import sys
-import ctypes
 from config import *
 import imap
 import psutil
@@ -203,13 +201,6 @@ def handle_request(main_sender: smtp.MailSender, user_mail: str, cmd: str):
     print('Sending result to', user_mail)
     sender.send_attached_email(
         user_mail, result[0], result[1], result[2] if len(result) == 3 else None)
-
-
-def is_admin():
-    try:
-        return ctypes.windll.shell32.IsUserAnAdmin()
-    except:
-        return False
 
 
 if __name__ == '__main__':

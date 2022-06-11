@@ -1,5 +1,3 @@
-from email.mime import base
-from msilib.schema import Registry
 import winreg
 
 STR_TO_BYTES_ENCODING = 'utf-8'
