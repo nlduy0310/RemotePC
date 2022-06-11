@@ -1,10 +1,6 @@
-from ast import expr_context
-from email.mime import base
 import random
 import os
-from statistics import mode
 import sys
-from tkinter import dialog
 from PyQt5.QtWidgets import (QApplication, QMainWindow,
                              QLabel, QPushButton, QWidget,
                              QLineEdit, QMessageBox, QComboBox,
@@ -16,16 +12,14 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow,
 from PyQt5 import QtWidgets, QtGui
 from PyQt5.QtCore import QRect, Qt, QThread, pyqtSignal
 from matplotlib.widgets import Widget
-import client
+from numpy import interp
 import imap
 import smtp
 import utils
 import threading
 import time
-from datetime import datetime, timedelta
-import json
+from datetime import datetime
 import cv2
-import numpy as np
 
 dir_to_icon = "ui/icon/"
 dir_to_bg = "ui/background/"
@@ -233,7 +227,7 @@ QPushButton:hover {
         self.main_center_layout.addWidget(self.main_result)
         self.main_center_gb.setLayout(self.main_center_layout)
 
-        # Right 
+        # Right
         self.tab = QTabWidget()
         self.tab_1 = QWidget()
         self.tab_2 = QWidget()
@@ -264,7 +258,7 @@ QPushButton:hover {
         self.main_right_gb.setStyleSheet("font-weight: bold")
         self.main_right_gb.setLayout(self.right_layout)
         self.main_right_gb.setFixedSize(250, 600)
-        
+
         self.main_layout = QHBoxLayout()
         self.main_layout.addLayout(self.main_left_layout)
         self.main_layout.addWidget(self.main_center_gb)
@@ -307,7 +301,7 @@ QPushButton:hover {
         self.server_list_vlayout.addWidget(self.server_list_btn_close)
         self.server_list_vlayout.addStretch(0)
         self.server_list_hlayout.addLayout(self.server_list_vlayout)
-        
+
         self.server_list_wid.setLayout(self.server_list_layout)
 
 
@@ -336,6 +330,7 @@ class Main(QMainWindow, Ui):
         self.btn_8.clicked.connect(self.handle_file_request)
         self.btn_9.clicked.connect(self.handle_history)
         self.btn_10.clicked.connect(self.handle_video_camera)
+
     def signin_event(self):
         # self.mail_sender = smtp.MailSender(self.signin_user.text() + "@gmail.com", self.signin_pass.text())
         # self.setMainWindow()
@@ -430,7 +425,7 @@ class Main(QMainWindow, Ui):
         dialog = ShutdownReqDialog()
         dialog.exec_()
         mode, time_out = dialog.get_value()
-        if time_out and time_out.isnumeric() and int(time_out) >= 5:
+        if time_out and time_out.isnumeric() and int(time_out) >= 0:
             cmd = mode + ' ' + \
                 str(random.randint(10000, 99999)) + ' --' + time_out
         else:
@@ -457,6 +452,7 @@ class Main(QMainWindow, Ui):
     def handle_webcam_request(self):
         cmd = 'webcamshot ' + str(random.randint(10000, 99999))
         self.handle_request(cmd)
+
     def handle_file_request(self):
         path, status = QtWidgets.QInputDialog.getText(
             self, 'File retrieve options', 'Path to the file you want to retrieve')
@@ -469,8 +465,8 @@ class Main(QMainWindow, Ui):
         dialog = HistoryReqDialog()
         dialog.exec_()
         brow, date = dialog.get_value()
-        cmd = 'his ' +  str(random.randint(10000, 99999)) + \
-            ' ' + brow + ' ' +  date
+        cmd = 'his ' + str(random.randint(10000, 99999)) + \
+            ' ' + brow + ' ' + date
         self.handle_request(cmd)
 
     def handle_video_camera(self):
@@ -478,7 +474,7 @@ class Main(QMainWindow, Ui):
         dialog.exec_()
         dur, fps = dialog.get_value()
         cmd = 'vid-cam ' + str(random.randint(10000, 99999)) + \
-            ' --' + dur + ' --'  + fps
+            ' --' + dur + ' --' + fps
         print(cmd)
         self.handle_request(cmd)
 
@@ -488,20 +484,26 @@ class Main(QMainWindow, Ui):
             text = text + '\n'
         cursor.insertText(text)
 
-    def log_image(self, path: str):
+    def log_image(self, path: str, title: str):
         if os.path.isfile(path):
-            cursor = QtGui.QTextCursor(self.main_result.document())
-            image = QtGui.QImage(path)
-            image.scaled(self.main_result.width(),
-                         self.main_result.height(), Qt.AspectRatioMode(0))
-            cursor.insertImage(image)
+            # cursor = QtGui.QTextCursor(self.main_result.document())
+            # image = QtGui.QImage(path)
+            # image.scaled(self.main_result.width(),
+            #              self.main_result.height(), Qt.AspectRatioMode(0))
+            # cursor.insertImage(image)
+            image = cv2.imread(path, cv2.IMREAD_UNCHANGED)
+            scale = 0.75
+            shape = (int(scale * image.shape[1]), int(scale * image.shape[0]))
+            image = cv2.resize(image, shape, interpolation=cv2.INTER_AREA)
+            cv2.imshow(title, image)
+
 
     def log_response(self, sender, subject, content, path):
         if sender and subject:
             if path and os.path.isfile(path):
                 if path.endswith('.jpg') or path.endswith('.png'):
                     self.log_text('IMAGE ATTACHED: {}\n'.format(path))
-                    self.log_image(path)
+                    self.log_image(path, content)
                 elif path.endswith('.his'):
                     self.log_text('HISTORY ATTACHED: {}\n'.format(path))
                     with open(path, "r") as f:
@@ -511,19 +513,19 @@ class Main(QMainWindow, Ui):
                 elif path.endswith('.avi'):
                     cap = cv2.VideoCapture(path)
                     if(cap.isOpened() == False):
-                        self.log_text('Can\'t open {} file',format(path))
+                        self.log_text('Can\'t open {} file', format(path))
                     else:
                         self.log_text('Video camera: {}\n'.format(path))
                         while cap.isOpened():
                             ret, frame = cap.read()
                             if ret == True:
-                                cv2.imshow('Frame',frame)
+                                cv2.imshow('Frame', frame)
                                 if cv2.waitKey(25) & 0xFF == ord('q'):
                                     break
                             else:
                                 break
                         cap.release()
-                        #cv2.destroyAllWindows()
+                        # cv2.destroyAllWindows()
                 else:
                     self.log_text('FILE ATTACHED: {}\n'.format(path))
             if content:
@@ -533,6 +535,7 @@ class Main(QMainWindow, Ui):
             self.log_text(
                 '-----' * 10 + 'REQUEST: {} timed out, no response received'.format(subject))
         self.log_text('-----' * 10)
+
 
 class HistoryReqDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -554,13 +557,15 @@ class HistoryReqDialog(QtWidgets.QDialog):
 
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+
     def get_value(self):
         return self.brow.currentText(), self.date.text()
+
 
 class VideoCamReqDiaLog(QtWidgets.QDialog):
     def __init__(self, parent=None):
         super(VideoCamReqDiaLog, self).__init__(parent)
-        self.duration =  QLineEdit()
+        self.duration = QLineEdit()
         self.duration.setValidator(QtGui.QIntValidator(bottom=1))
         self.duration.setFixedWidth(300)
         self.duration.setText("5")
@@ -575,12 +580,12 @@ class VideoCamReqDiaLog(QtWidgets.QDialog):
             QtWidgets.QDialogButtonBox.StandardButton.Ok)
 
         layout = QtWidgets.QVBoxLayout()
-        
+
         layout.addWidget(self.label)
         layout1 = QHBoxLayout()
         layout1.addWidget(self.label1)
         layout1.addWidget(self.duration)
-        layout2 =QHBoxLayout()
+        layout2 = QHBoxLayout()
         layout2.addWidget(self.label2)
         layout2.addWidget(self.fps)
         layout.addLayout(layout1)
@@ -592,8 +597,10 @@ class VideoCamReqDiaLog(QtWidgets.QDialog):
 
         self.button_box.accepted.connect(self.accept)
         self.button_box.rejected.connect(self.reject)
+
     def get_value(self):
         return self.duration.text(), self.fps.text()
+
 
 class ShutdownReqDialog(QtWidgets.QDialog):
     def __init__(self, parent=None):
@@ -693,4 +700,3 @@ if __name__ == "__main__":
         utils.remove_files('data')
     except:
         pass
-
